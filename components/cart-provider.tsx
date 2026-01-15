@@ -5,7 +5,6 @@ import {
   useContext,
   useState,
   useCallback,
-  useEffect,
   type ReactNode,
 } from "react"
 
@@ -20,14 +19,6 @@ export interface CartItem {
   weightInGrams?: number
 }
 
-export interface Order {
-  id: number
-  mesa: number
-  items: CartItem[]
-  total: number
-  status: "aberto" | "pronto"
-}
-
 interface CartContextType {
   items: CartItem[]
   tableNumber: number
@@ -38,8 +29,6 @@ interface CartContextType {
   clearCart: () => void
   total: number
   itemCount: number
-  orders: Order[]
-  addOrder: (order: Order) => void
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined)
@@ -50,25 +39,6 @@ const generateId = () =>
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([])
   const [tableNumber, setTableNumber] = useState(1)
-
-  // 🔥 PEDIDOS PERSISTIDOS
-  const [orders, setOrders] = useState<Order[]>([])
-
-  // 🔥 CARREGAR PEDIDOS DO LOCALSTORAGE
-  useEffect(() => {
-  const stored = localStorage.getItem("orders")
-  console.log("🟡 ORDERS NO LOCALSTORAGE:", stored)
-
-  if (stored) {
-    setOrders(JSON.parse(stored))
-  }
-}, [])
-
-
-  // 🔥 SALVAR PEDIDOS NO LOCALSTORAGE
-  useEffect(() => {
-    localStorage.setItem("orders", JSON.stringify(orders))
-  }, [orders])
 
   const addItem = useCallback(
     (item: Omit<CartItem, "id" | "quantity">) => {
@@ -118,10 +88,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setItems([])
   }, [])
 
-  const addOrder = useCallback((order: Order) => {
-    setOrders((prev) => [...prev, order])
-  }, [])
-
   const total = items.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0,
@@ -141,8 +107,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
         clearCart,
         total,
         itemCount,
-        orders,
-        addOrder,
       }}
     >
       {children}

@@ -1,11 +1,11 @@
 "use client"
 
 import { useEffect, use } from "react"
-import { UtensilsCrossed } from "lucide-react"
 import { MenuItemCard } from "@/components/menu-item-card"
 import { CartBar } from "@/components/cart-bar"
 import { useCart } from "@/components/cart-provider"
 import { menuItems, categories } from "@/lib/menu-data"
+import { supabase } from "@/lib/supabase"
 
 interface PageProps {
   params: Promise<{ id: string | string[] }>
@@ -25,6 +25,17 @@ export default function TableMenuPage({ params }: PageProps) {
   useEffect(() => {
     setTableNumber(tableNumber)
   }, [tableNumber, setTableNumber])
+
+
+  useEffect(() => {
+    supabase
+      .from("orders")
+      .select("*")
+      .then(({ data, error }) => {
+        console.log("SUPABASE TEST:", data, error)
+      })
+  }, [])
+
 
   return (
     <main className="min-h-screen bg-background pb-28">

@@ -7,6 +7,7 @@ import { ArrowLeft, Minus, Plus, Trash2, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { useCart } from "@/components/cart-provider"
+import { createOrderInDB } from "@/lib/orders"
 
 export default function CartPage() {
   const router = useRouter()
@@ -17,25 +18,21 @@ export default function CartPage() {
     updateQuantity,
     removeItem,
     clearCart,
-    addOrder,
   } = useCart()
+
 
   const [orderConfirmed, setOrderConfirmed] = useState(false)
 
-  const handleConfirmOrder = () => {
+  const handleConfirmOrder = async () => {
     if (items.length === 0) return
 
-    const order = {
-      id: Date.now(),
-      mesa: tableNumber,
+    await createOrderInDB({
+      origin: "mesa",
+      tableNumber,
       items,
-      total,
-      status: "aberto",
-    }
+      subtotal: total,
+    })
 
-    console.log("🟢 PEDIDO CRIADO:", order)
-
-    addOrder(order)
     clearCart()
     setOrderConfirmed(true)
 
@@ -43,6 +40,7 @@ export default function CartPage() {
       router.push(`/mesa/${tableNumber}`)
     }, 2000)
   }
+
 
 
   if (orderConfirmed) {

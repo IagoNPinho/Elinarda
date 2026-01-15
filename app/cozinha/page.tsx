@@ -1,33 +1,64 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { ChefHat, FileText } from "lucide-react"
-import { useCart } from "@/components/cart-provider"
 import { Button } from "@/components/ui/button"
+import { supabase } from "@/lib/supabase"
 import { generateOrderThermalPDF } from "@/lib/generate-order-pdf-thermal"
 
-export default function KitchenPage() {
-  const { orders } = useCart()
+interface Order {
+  id: string
+  origin: "mesa" | "balcao" | "delivery"
+  table_number?: number
+  status: string
+  items: any[]
+  total: number
+}
 
-  console.log("🔵 ORDERS NA COZINHA:", orders)
+export default function KitchenPage() {
+  const [orders, setOrders] = useState<Order[]>([])
+  const [loading, setLoading] = useState(true)
+
+  const fetchOrders = async () => {
+    const { data, error } = await supabase
+      .from("orders")
+      .select("*")
+      .neq("status", "finalizado")
+      .order("created_at", { ascending: false })
+
+    if (!error && data) {
+      setOrders(data)
+    }
+
+    setLoading(false)
+  }
+
+  useEffect(() => {
+    fetchOrders()
+    const interval = setInterval(fetchOrders, 3000)
+    return () => clearInterval(interval)
+  }, [])
 
   return (
     <main className="min-h-screen bg-background">
-      {/* HEADER (PADRÃO DO SISTEMA) */}
+      {/* HEADER PADRÃO */}
       <header className="sticky top-0 bg-primary text-primary-foreground p-4 shadow-md z-10">
         <div className="max-w-4xl mx-auto flex items-center gap-3">
           <img src="/logo.svg" alt="Restaurante" className="w-12 h-12" />
-          <h1 className="text-xl font-bold">
-            Cozinha
-          </h1>
+          <h1 className="text-xl font-bold">Cozinha</h1>
         </div>
       </header>
 
-      {/* LISTA DE PEDIDOS */}
-      {orders.length === 0 ? (
-        <div className="text-center text-muted-foreground mt-20">
-          <p>Nenhum pedido em aberto no momento.</p>
-        </div>
+      {/* LISTA */}
+      {loading ? (
+        <p className="text-center mt-20 text-muted-foreground">
+          Carregando pedidos...
+        </p>
+      ) : orders.length === 0 ? (
+        <p className="text-center mt-20 text-muted-foreground">
+          Nenhum pedido em aberto no momento.
+        </p>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 p-4">
           {orders.map((order) => (
@@ -38,23 +69,30 @@ export default function KitchenPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="font-bold">
-                    Pedido #{order.id}
+                    Pedido #{order.id.slice(0, 6)}
                   </h2>
-                  <p className="text-sm text-muted-foreground">
-                    Mesa {order.mesa}
-                  </p>
+                  {order.origin === "mesa" && (
+                    <p className="text-sm text-muted-foreground">
+                      Mesa {order.table_number}
+                    </p>
+                  )}
+                  {order.origin === "delivery" && (
+                    <p className="text-sm text-muted-foreground">
+                      Delivery
+                    </p>
+                  )}
                 </div>
 
                 <span className="text-sm font-semibold text-primary">
                   {order.status === "aberto"
                     ? "Em preparo"
-                    : "Pronto"}
+                    : order.status}
                 </span>
               </div>
 
               <ul className="text-sm space-y-1">
-                {order.items.map((item) => (
-                  <li key={item.id}>
+                {order.items.map((item: any, idx: number) => (
+                  <li key={idx}>
                     {item.weightInGrams
                       ? `${item.name} – ${item.weightInGrams}g`
                       : `${item.quantity}x ${item.name} (${item.sizeLabel})`}
@@ -71,7 +109,9 @@ export default function KitchenPage() {
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => generateOrderThermalPDF(order, { width: 58 })}
+                    onClick={() =>
+                      generateOrderThermalPDF(order, { width: 58 })
+                    }
                   >
                     <FileText className="w-4 h-4 mr-1" />
                     Imprimir
