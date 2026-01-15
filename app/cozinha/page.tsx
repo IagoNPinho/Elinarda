@@ -6,37 +6,33 @@ import { ChefHat, FileText } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { supabase } from "@/lib/supabase"
 import { generateOrderThermalPDF } from "@/lib/generate-order-pdf-thermal"
-
-interface Order {
-  id: string
-  origin: "mesa" | "balcao" | "delivery"
-  table_number?: number
-  status: string
-  items: any[]
-  total: number
-}
+import type { Order } from "@/lib/orders"
+import { fetchOpenOrders } from "@/lib/orders"
 
 export default function KitchenPage() {
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
 
-  const fetchOrders = async () => {
-    const { data, error } = await supabase
-      .from("orders")
-      .select("*")
-      .neq("status", "finalizado")
-      .order("created_at", { ascending: false })
-
-    if (!error && data) {
-      setOrders(data)
-    }
-
+  const loadOrders = async () => {
+    setLoading(true)
+    const data = await fetchOpenOrders()
+    setOrders(data)
     setLoading(false)
   }
 
+  const statusLabel: Record<string, string> = {
+    pending: "Aguardando",
+    preparing: "Em preparo",
+    ready: "Pronto",
+    out_for_delivery: "Saiu para entrega",
+    delivered: "Entregue",
+    closed: "Finalizado",
+  }
+
+
   useEffect(() => {
-    fetchOrders()
-    const interval = setInterval(fetchOrders, 3000)
+    loadOrders()
+    const interval = setInterval(loadOrders, 3000)
     return () => clearInterval(interval)
   }, [])
 
@@ -84,9 +80,7 @@ export default function KitchenPage() {
                 </div>
 
                 <span className="text-sm font-semibold text-primary">
-                  {order.status === "aberto"
-                    ? "Em preparo"
-                    : order.status}
+                  {statusLabel[order.status]}
                 </span>
               </div>
 

@@ -1,5 +1,5 @@
 import jsPDF from "jspdf"
-import type { Order } from "@/components/cart-provider"
+import type { Order } from "@/lib/orders"
 
 interface ThermalOptions {
   width: 58 | 80
@@ -28,7 +28,7 @@ export function generateOrderThermalPDF(
   doc.setFontSize(9)
   doc.text(`Pedido #${order.id}`, left, y)
   y += 4
-  doc.text(`Mesa ${order.mesa}`, left, y)
+  doc.text(`Mesa ${order.table_number}`, left, y)
   y += 4
   doc.text(new Date().toLocaleString("pt-BR"), left, y)
 

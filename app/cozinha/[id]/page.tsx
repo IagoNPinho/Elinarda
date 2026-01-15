@@ -6,15 +6,8 @@ import { ArrowLeft, FileText, Check, ChefHat } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { supabase } from "@/lib/supabase"
 import { generateOrderThermalPDF } from "@/lib/generate-order-pdf-thermal"
-
-interface Order {
-  id: string
-  origin: "mesa" | "balcao" | "delivery"
-  table_number?: number
-  status: string
-  items: any[]
-  total: number
-}
+import { updateOrderStatus, fetchOrderById } from "@/lib/orders"
+import type { Order } from "@/lib/orders"
 
 export default function KitchenOrderPage() {
   const { id } = useParams()
@@ -23,17 +16,9 @@ export default function KitchenOrderPage() {
   const [order, setOrder] = useState<Order | null>(null)
   const [loading, setLoading] = useState(true)
 
-  const fetchOrder = async () => {
-    const { data, error } = await supabase
-      .from("orders")
-      .select("*")
-      .eq("id", id)
-      .single()
-
-    if (!error) {
-      setOrder(data)
-    }
-
+  const loadOrder = async () => {
+    const data = await fetchOrderById(id as string)
+    setOrder(data)
     setLoading(false)
   }
 
@@ -43,11 +28,11 @@ export default function KitchenOrderPage() {
       .update({ status })
       .eq("id", id)
 
-    fetchOrder()
+    loadOrder()
   }
 
   useEffect(() => {
-    if (id) fetchOrder()
+    if (id) loadOrder()
   }, [id])
 
   if (loading) {
@@ -125,34 +110,42 @@ export default function KitchenOrderPage() {
         <div className="grid gap-3 sm:grid-cols-2">
           <Button
             variant="outline"
-            onClick={() => generateOrderThermalPDF(order, { width: 58 })}
+            onClick={async () => {
+              if (order.status === "pending") {
+                await updateOrderStatus(order.id, "preparing")
+              }
+
+              await generateOrderThermalPDF(order, { width: 58 })
+              loadOrder()
+            }}
           >
             <FileText className="w-4 h-4 mr-2" />
             Imprimir Pedido
           </Button>
 
-          {order.status === "aberto" && (
-            <Button onClick={() => updateStatus("preparando")}>
+          {order.status === "pending" && (
+            <Button onClick={() => updateStatus("preparing")}>
               <ChefHat className="w-4 h-4 mr-2" />
               Iniciar Preparo
             </Button>
           )}
 
-          {order.status === "preparando" && (
-            <Button onClick={() => updateStatus("pronto")}>
+          {order.status === "preparing" && (
+            <Button onClick={() => updateStatus("ready")}>
               <Check className="w-4 h-4 mr-2" />
               Marcar como Pronto
             </Button>
           )}
 
-          {order.status === "pronto" && (
+          {order.status === "ready" && (
             <Button
               variant="destructive"
-              onClick={() => updateStatus("finalizado")}
+              onClick={() => updateStatus("closed")}
             >
               Finalizar Pedido
             </Button>
           )}
+
         </div>
       </div>
     </main>

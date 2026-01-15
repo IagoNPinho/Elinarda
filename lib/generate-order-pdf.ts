@@ -1,5 +1,5 @@
 import jsPDF from "jspdf"
-import type { Order } from "@/components/cart-provider"
+import type { Order } from "@/lib/orders"
 
 export function generateOrderPDF(order: Order) {
   const doc = new jsPDF({
@@ -17,7 +17,7 @@ export function generateOrderPDF(order: Order) {
   y += 10
   doc.setFontSize(11)
   doc.text(`Pedido: #${order.id}`, 20, y)
-  doc.text(`Mesa: ${order.mesa}`, 150, y)
+  doc.text(`Mesa: ${order.table_number}`, 150, y)
 
   y += 6
   doc.text(`Data: ${new Date().toLocaleString("pt-BR")}`, 20, y)
