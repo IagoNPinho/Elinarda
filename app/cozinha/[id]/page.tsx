@@ -4,10 +4,9 @@ import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { ArrowLeft, FileText, Check, ChefHat } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { supabase } from "@/lib/supabase"
 import { generateOrderThermalPDF } from "@/lib/generate-order-pdf-thermal"
-import { updateOrderStatus, fetchOrderById } from "@/lib/orders"
-import type { Order } from "@/lib/orders"
+import { updateOrderStatus, fetchOrderById, closeOrder } from "@/lib/orders"
+import type { Order, PaymentMethod } from "@/lib/orders"
 
 export default function KitchenOrderPage() {
   const { id } = useParams()
@@ -16,20 +15,47 @@ export default function KitchenOrderPage() {
   const [order, setOrder] = useState<Order | null>(null)
   const [loading, setLoading] = useState(true)
 
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null)
+  const [paymentDetails, setPaymentDetails] = useState("")
+
+
   const loadOrder = async () => {
     const data = await fetchOrderById(id as string)
     setOrder(data)
     setLoading(false)
   }
 
-  const updateStatus = async (status: string) => {
-    await supabase
-      .from("orders")
-      .update({ status })
-      .eq("id", id)
+  const handlePrint = async (order: Order) => {
+    if (order.status === "pending") {
+      await updateOrderStatus(order.id, "preparing")
+    }
+
+    generateOrderThermalPDF(order, { width: 58 })
+    loadOrder()
+  }
+
+
+  const updateStatus = async (order: Order, status:
+    | "pending"
+    | "preparing"
+    | "ready"
+    | "out_for_delivery"
+    | "delivered"
+    | "closed"
+  ) => {
+    await updateOrderStatus(order.id, status)
 
     loadOrder()
   }
+
+  function assertPaymentMethod(
+    method: PaymentMethod | null
+  ): asserts method is PaymentMethod {
+    if (!method) {
+      throw new Error("Forma de pagamento obrigatória")
+    }
+  }
+
 
   useEffect(() => {
     if (id) loadOrder()
@@ -111,11 +137,7 @@ export default function KitchenOrderPage() {
           <Button
             variant="outline"
             onClick={async () => {
-              if (order.status === "pending") {
-                await updateOrderStatus(order.id, "preparing")
-              }
-
-              await generateOrderThermalPDF(order, { width: 58 })
+              handlePrint(order)
               loadOrder()
             }}
           >
@@ -124,27 +146,118 @@ export default function KitchenOrderPage() {
           </Button>
 
           {order.status === "pending" && (
-            <Button onClick={() => updateStatus("preparing")}>
+            <Button onClick={() =>
+              updateStatus(order, "preparing")
+            }>
               <ChefHat className="w-4 h-4 mr-2" />
               Iniciar Preparo
             </Button>
           )}
 
           {order.status === "preparing" && (
-            <Button onClick={() => updateStatus("ready")}>
+            <Button onClick={() =>
+              updateStatus(order, "ready")
+            }>
               <Check className="w-4 h-4 mr-2" />
               Marcar como Pronto
             </Button>
           )}
 
-          {order.status === "ready" && (
-            <Button
-              variant="destructive"
-              onClick={() => updateStatus("closed")}
-            >
-              Finalizar Pedido
+          {order.origin === "delivery" && order.status === "ready" && (
+            <Button onClick={() => updateStatus(order, "out_for_delivery")}>
+              🚚 Saiu para Entrega
             </Button>
           )}
+
+          {order.origin !== "delivery" && order.status === "ready" && (
+            <div className="space-y-3 border rounded-lg p-4">
+              <h3 className="font-semibold">Forma de Pagamento</h3>
+
+              <div className="grid grid-cols-2 gap-2">
+                {["dinheiro", "pix", "credito", "debito"].map((method) => (
+                  <Button
+                    key={method}
+                    variant={paymentMethod === method ? "default" : "outline"}
+                    onClick={() => setPaymentMethod(method as any)}
+                  >
+                    {method.toUpperCase()}
+                  </Button>
+                ))}
+              </div>
+
+              <input
+                className="w-full border rounded-md p-2 text-sm"
+                placeholder="Observações (ex: troco para 50)"
+                value={paymentDetails}
+                onChange={(e) => setPaymentDetails(e.target.value)}
+              />
+
+              <Button
+                variant="destructive"
+                disabled={!paymentMethod}
+                onClick={async () => {
+                  assertPaymentMethod(paymentMethod)
+
+                  await closeOrder({
+                    id: order.id,
+                    paymentMethod,
+                    paymentDetails,
+                  })
+
+                  router.push("/cozinha")
+                }}
+              >
+                Finalizar Pedido
+              </Button>
+
+            </div>
+          )}
+
+
+          {order.origin === "delivery" && order.status === "out_for_delivery" && (
+            <div className="space-y-3 border rounded-lg p-4">
+              <h3 className="font-semibold">Forma de Pagamento</h3>
+
+              <div className="grid grid-cols-2 gap-2">
+                {["dinheiro", "pix", "credito", "debito"].map((method) => (
+                  <Button
+                    key={method}
+                    variant={paymentMethod === method ? "default" : "outline"}
+                    onClick={() => setPaymentMethod(method as any)}
+                  >
+                    {method.toUpperCase()}
+                  </Button>
+                ))}
+              </div>
+
+              <input
+                className="w-full border rounded-md p-2 text-sm"
+                placeholder="Observações (ex: troco para 50)"
+                value={paymentDetails}
+                onChange={(e) => setPaymentDetails(e.target.value)}
+              />
+
+              <Button
+                variant="destructive"
+                disabled={!paymentMethod}
+                onClick={async () => {
+                  assertPaymentMethod(paymentMethod)
+
+                  await closeOrder({
+                    id: order.id,
+                    paymentMethod,
+                    paymentDetails,
+                  })
+
+                  router.push("/cozinha")
+                }}
+              >
+                Finalizar Pedido
+              </Button>
+
+            </div>
+          )}
+
 
         </div>
       </div>

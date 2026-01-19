@@ -12,11 +12,9 @@ interface PageProps {
 }
 
 export default function TableMenuPage({ params }: PageProps) {
-  // 🔥 NEXT 16: params é Promise → OBRIGATÓRIO usar use()
   const resolvedParams = use(params)
   const id = resolvedParams.id
 
-  // 🔥 normalização segura
   const tableId = Array.isArray(id) ? id[0] : id
   const tableNumber = Number(tableId) || 1
 
@@ -31,8 +29,8 @@ export default function TableMenuPage({ params }: PageProps) {
     supabase
       .from("orders")
       .select("*")
-      .then(({ data, error }) => {
-        console.log("SUPABASE TEST:", data, error)
+      .then(({ error }) => {
+        console.log(error)
       })
   }, [])
 

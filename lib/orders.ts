@@ -8,6 +8,12 @@ export type OrderStatus =
   | "delivered"
   | "closed"
 
+export type PaymentMethod =
+  | "dinheiro"
+  | "pix"
+  | "credito"
+  | "debito"
+
 export interface OrderItem {
   id: string
   itemId: string
@@ -33,6 +39,9 @@ export interface Order {
   subtotal: number
   delivery_fee?: number | null
   total: number
+
+  payment_method?: PaymentMethod | null
+  payment_details?: string | null
 
   status: OrderStatus
   created_at: string
@@ -61,16 +70,17 @@ export async function createOrderInDB({
 
   const { error } = await supabase.from("orders").insert({
     origin,
-    table_number: tableNumber,
-    customer_name: customerName,
-    customer_phone: customerPhone,
-    customer_address: customerAddress,
+    table_number: origin === "mesa" ? tableNumber : null,
+    customer_name: customerName ?? null,
+    customer_phone: customerPhone ?? null,
+    customer_address: customerAddress ?? null,
     status: "pending",
     items,
     subtotal,
     delivery_fee: deliveryFee,
     total,
   })
+
 
   if (error) throw error
 }
@@ -117,3 +127,26 @@ export async function updateOrderStatus(
   if (error) throw error
 }
 
+export async function closeOrder({
+  id,
+  paymentMethod,
+  paymentDetails,
+}: {
+  id: string
+  paymentMethod: PaymentMethod
+  paymentDetails?: string
+}) {
+  const { error } = await supabase
+    .from("orders")
+    .update({
+      status: "closed",
+      payment_method: paymentMethod,
+      payment_details: paymentDetails ?? null,
+    })
+    .eq("id", id)
+
+  if (error) {
+    console.error("Erro ao fechar pedido:", error)
+    throw error
+  }
+}

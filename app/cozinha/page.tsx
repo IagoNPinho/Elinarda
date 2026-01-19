@@ -1,23 +1,39 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
-import { ChefHat, FileText } from "lucide-react"
+import { FileText } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { supabase } from "@/lib/supabase"
 import { generateOrderThermalPDF } from "@/lib/generate-order-pdf-thermal"
 import type { Order } from "@/lib/orders"
-import { fetchOpenOrders } from "@/lib/orders"
+import { fetchOpenOrders, updateOrderStatus } from "@/lib/orders"
 
 export default function KitchenPage() {
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
 
-  const loadOrders = async () => {
-    setLoading(true)
+  const previousOrdersRef = useRef<string>("")
+
+  const loadOrders = async (isInitial = false) => {
     const data = await fetchOpenOrders()
-    setOrders(data)
-    setLoading(false)
+    const serialized = JSON.stringify(data)
+
+    if (serialized !== previousOrdersRef.current) {
+      previousOrdersRef.current = serialized
+      setOrders(data)
+    }
+
+    if (isInitial) {
+      setLoading(false)
+    }
+  }
+
+  const handlePrint = async (order: Order) => {
+    if (order.status === "pending") {
+      await updateOrderStatus(order.id, "preparing")
+    }
+
+    generateOrderThermalPDF(order, { width: 58 })
   }
 
   const statusLabel: Record<string, string> = {
@@ -30,11 +46,17 @@ export default function KitchenPage() {
   }
 
 
+
   useEffect(() => {
-    loadOrders()
-    const interval = setInterval(loadOrders, 3000)
+    loadOrders(true)
+
+    const interval = setInterval(() => {
+      loadOrders()
+    }, 3000)
+
     return () => clearInterval(interval)
   }, [])
+
 
   return (
     <main className="min-h-screen bg-background">
@@ -104,7 +126,7 @@ export default function KitchenPage() {
                     size="sm"
                     variant="outline"
                     onClick={() =>
-                      generateOrderThermalPDF(order, { width: 58 })
+                      handlePrint(order)
                     }
                   >
                     <FileText className="w-4 h-4 mr-1" />

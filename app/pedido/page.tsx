@@ -26,6 +26,8 @@ export default function CartPage() {
   const handleConfirmOrder = async () => {
     if (items.length === 0) return
 
+    console.log(tableNumber, items, total)
+    
     await createOrderInDB({
       origin: "mesa",
       tableNumber,
