@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { supabase } from "@/lib/supabase"
+import { supabaseServer } from "@/lib/supabase-server"
 
 export async function PATCH(
   req: Request,
@@ -14,7 +14,7 @@ export async function PATCH(
     )
   }
 
-  const { error } = await supabase
+  const { error } = await supabaseServer
     .from("orders")
     .update({ status })
     .eq("id", params.id)
