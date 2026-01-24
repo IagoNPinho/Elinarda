@@ -63,7 +63,6 @@ export default function AdminPage() {
     return matchOrigin && matchStatus
   })
 
-
   // Carregar Orders por data
   useEffect(() => {
     const load = async () => {
@@ -105,7 +104,6 @@ export default function AdminPage() {
 
     load()
   }, [selectedDate])
-
 
   // Carregar configurações de delivery
   useEffect(() => {

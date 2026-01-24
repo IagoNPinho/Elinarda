@@ -3,8 +3,9 @@
 export const dynamic = "force-dynamic"
 
 import { useEffect, useRef, useState } from "react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { FileText, XCircle } from "lucide-react"
+import { FileText, ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import {
@@ -18,6 +19,9 @@ import { fetchOpenOrders, updateOrderStatus, cancelOrder } from "@/lib/orders"
 import { ConfirmModal } from "@/components/confirm-cancel-modal"
 
 export default function KitchenPage() {
+  // Router para navegação
+  const router = useRouter()
+
   // Status para modal de cancelamento
   const [cancelId, setCancelId] = useState<string | null>(null)
   const [loadingCancel, setLoadingCancel] = useState(false)
@@ -105,6 +109,13 @@ export default function KitchenPage() {
       {/* HEADER */}
       <header className="sticky top-0 bg-primary text-primary-foreground p-4 shadow-md z-10 flex flex-col">
         <div className="max-w-4xl flex flex-col items-center mx-auto space-y-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => router.push("/")}
+          >
+            <ArrowLeft />
+          </Button>
           <div className="flex items-center gap-1">
             <img src="/logo.svg" alt="Restaurante" className="w-12 h-12" />
             <h1 className="text-xl font-bold">Cozinha</h1>
