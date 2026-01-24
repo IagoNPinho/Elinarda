@@ -416,7 +416,7 @@ export const menuByDay: Record<number, MenuItem[]> = {
     },
   ],
   1: [
-      {
+    {
       id: "01",
       name: "Creme de galinha",
       description: "Frango, Milho e Creme de leite (acompanha arroz, salada e farofa)",
@@ -1934,9 +1934,40 @@ export const menuByDay: Record<number, MenuItem[]> = {
   ],
 }
 
-const today = new Date().getDay()
-export const menuItems = menuByDay[today]
-
-export const categories = [
-  ...new Set(menuItems.map((item) => item.category)),
+const DAY_LABELS = [
+  "Domingo",
+  "Segunda-feira",
+  "Terça-feira",
+  "Quarta-feira",
+  "Quinta-feira",
+  "Sexta-feira",
+  "Sábado",
 ]
+
+export function getNextAvailableDay(startDay: number) {
+  for (let i = 0; i < 7; i++) {
+    const day = (startDay + i) % 7
+    if (menuByDay[day]?.length) {
+      return day
+    }
+  }
+  return startDay
+}
+
+export function getActiveMenu() {
+  const today = new Date().getDay()
+  const activeDay = getNextAvailableDay(today)
+
+  const menu = menuByDay[activeDay] ?? []
+
+  const categories = Array.from(
+    new Set(menu.map((item) => item.category))
+  )
+
+  return {
+    dayIndex: activeDay,
+    dayLabel: DAY_LABELS[activeDay],
+    menu,
+    categories,
+  }
+} 

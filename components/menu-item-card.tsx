@@ -7,13 +7,32 @@ import { Card, CardContent } from "@/components/ui/card"
 import { useCart } from "@/components/cart-provider"
 import type { MenuItem } from "@/lib/menu-data"
 
-interface MenuItemCardProps {
-  item: MenuItem
+interface CartItem extends MenuItem {
+  size: string
+  sizeLabel: string
+  price: number
+  weightInGrams?: number
 }
 
-export function MenuItemCard({ item }: MenuItemCardProps) {
-  const { addItem } = useCart()
+interface MenuItemCardProps {
+  item: MenuItem
+  onAddItem: (item: {
+    itemId: string
+    name: string
+    size: string
+    sizeLabel: string
+    price: number
+    weightInGrams?: number
+  }) => void
+}
 
+export function MenuItemCard({
+  item,
+  onAddItem
+}: MenuItemCardProps) {
+  //const { addItem } = useCart()
+
+  // 🔥 item vendido por peso (boolean)
   const isWeightItem = item.soldByWeight === true
 
   // 🔹 tamanho selecionado (itens normais)
@@ -26,33 +45,38 @@ export function MenuItemCard({ item }: MenuItemCardProps) {
   const [weight, setWeight] = useState(100)
 
   // 🔥 preço exibido (mantém layout)
-  const displayedPrice = isWeightItem
+  const price = isWeightItem
     ? (weight / 1000) * (item.pricePerKg ?? 0)
-    : selectedSize.price * quantity
+    : selectedSize.price
 
-  const handleAddToCart = () => {
+  const handleAdd = () => {
     if (isWeightItem) {
-      addItem({
+      // item por peso: adiciona apenas uma vez
+      onAddItem({
         itemId: item.id,
         name: item.name,
         size: "U",
         sizeLabel: `${weight}g`,
-        price: displayedPrice,
-        quantity: 1,
+        price,
         weightInGrams: weight,
       })
+
       setWeight(100)
-    } else {
-      addItem({
+      return
+    }
+
+    // item normal: adiciona N vezes
+    for (let i = 0; i < quantity; i++) {
+      onAddItem({
         itemId: item.id,
         name: item.name,
         size: selectedSize.size,
         sizeLabel: selectedSize.label,
-        price: selectedSize.price,
-        quantity,
+        price,
       })
-      setQuantity(1)
     }
+
+    setQuantity(1)
   }
 
   return (
@@ -74,11 +98,10 @@ export function MenuItemCard({ item }: MenuItemCardProps) {
               <button
                 key={size.size}
                 onClick={() => setSelectedSize(size)}
-                className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
-                  selectedSize.size === size.size
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
-                }`}
+                className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${selectedSize.size === size.size
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                  }`}
               >
                 {size.size}
               </button>
@@ -88,7 +111,7 @@ export function MenuItemCard({ item }: MenuItemCardProps) {
 
         <div className="flex items-center justify-between">
           <span className="text-xl font-bold text-primary">
-            R$ {displayedPrice.toFixed(2).replace(".", ",")}
+            R$ {price.toFixed(2).replace(".", ",")}
           </span>
         </div>
 
@@ -102,13 +125,13 @@ export function MenuItemCard({ item }: MenuItemCardProps) {
                     ? setWeight(Math.max(50, weight - 50))
                     : setQuantity(Math.max(1, quantity - 1))
                 }
-                className="p-2 hover:bg-secondary/80 rounded-l-lg transition-colors"
+                className="p-2 hover:bg-secondary/80 rounded-l-lg transition-colors text-white"
                 aria-label="Diminuir"
               >
                 <Minus className="w-4 h-4" />
               </button>
 
-              <span className="w-12 text-center font-medium">
+              <span className="w-12 text-center text-white font-medium">
                 {isWeightItem ? `${weight}g` : quantity}
               </span>
 
@@ -118,14 +141,14 @@ export function MenuItemCard({ item }: MenuItemCardProps) {
                     ? setWeight(weight + 50)
                     : setQuantity(quantity + 1)
                 }
-                className="p-2 hover:bg-secondary/80 rounded-r-lg transition-colors"
+                className="p-2 hover:bg-secondary/80 rounded-r-lg transition-colors text-white"
                 aria-label="Aumentar"
               >
                 <Plus className="w-4 h-4" />
               </button>
             </div>
 
-            <Button onClick={handleAddToCart} size="lg" className="font-semibold">
+            <Button onClick={handleAdd} size="lg" className="font-semibold">
               <Plus className="w-4 h-4 mr-1" />
               Adicionar
             </Button>

@@ -8,22 +8,10 @@ import { useCart } from "@/components/cart-provider"
 import { supabase } from "@/lib/supabase"
 import { getActiveMenu } from "@/lib/menu-data"
 
-interface PageProps {
-    params: Promise<{ id: string | string[] }>
-}
 
-export default function TableMenuPage({ params }: PageProps) {
-    const id = use(params).id
-    const tableNumber = Number(id)
-
-
-
-    const { setTableNumber, addItem } = useCart()
+export default function BalcaoMenuPage() {
+    const { addItem } = useCart()
     const { menu, categories, dayLabel } = getActiveMenu()
-
-    useEffect(() => {
-        setTableNumber(tableNumber)
-    }, [tableNumber, setTableNumber])
 
 
     useEffect(() => {
@@ -43,7 +31,7 @@ export default function TableMenuPage({ params }: PageProps) {
                     <img src="/logo.svg" alt="Restaurante" className="w-12 h-12" />
                     <div>
                         <h1 className="text-xl font-extrabold tracking-wide">Restaurante</h1>
-                        <p className="text-sm opacity-90">Mesa {tableNumber}</p>
+                        <p className="text-sm opacity-90">Balcão</p>
                     </div>
                 </div>
             </header>
@@ -74,7 +62,7 @@ export default function TableMenuPage({ params }: PageProps) {
                     </section>
                 ))}
             </div>
-            <CartBar origin="mesa" />
+            <CartBar origin="balcao" />
         </main>
     )
 }

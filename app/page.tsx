@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { UtensilsCrossed, ChefHat } from "lucide-react"
+import { ChefHat, Truck, Settings } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 
@@ -15,12 +15,25 @@ export default function HomePage() {
           <p className="text-muted-foreground">Sistema de Pedidos</p>
         </div>
 
-        <div className="space-y-4">
-          <Card>
-            <CardContent className="p-4">
-              <h2 className="font-semibold text-lg mb-3 text-foreground">Acessar Mesa</h2>
+        <div className="space-y-3">
+          <Card className="p-3">
+            <CardContent className="p-2">
+              <div className="grid">
+                <Button
+                  asChild
+                  variant="outline"
+                  size="lg"
+                  className="h-16 text-lg font-semibold bg-transparent"
+                >
+                  <Link href={`/balcao`}>Balcão</Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="p-3">
+            <CardContent className="p-2">
               <div className="grid grid-cols-3 gap-2">
-                {[1, 2, 3, 4, 5, 6].map((table) => (
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((table) => (
                   <Button
                     key={table}
                     asChild
@@ -34,11 +47,24 @@ export default function HomePage() {
               </div>
             </CardContent>
           </Card>
-
           <Button asChild size="lg" className="w-full font-semibold h-14">
             <Link href="/cozinha">
               <ChefHat className="w-5 h-5 mr-2" />
               Acessar Cozinha
+            </Link>
+          </Button>
+
+          <Button asChild size="lg" variant="secondary" className="w-full font-semibold h-14">
+            <Link href="/delivery">
+              <Truck className="w-5 h-5 mr-2" />
+              Delivery
+            </Link>
+          </Button>
+
+          <Button asChild size="lg" variant="outline" className="w-full font-semibold h-14 bg-transparent">
+            <Link href="/admin">
+              <Settings className="w-5 h-5 mr-2" />
+              Administração
             </Link>
           </Button>
         </div>

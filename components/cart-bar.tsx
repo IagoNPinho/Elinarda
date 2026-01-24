@@ -1,12 +1,19 @@
 "use client"
 
-import Link from "next/link"
+import { useState } from "react"
 import { ShoppingCart } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useCart } from "@/components/cart-provider"
+import { CartModal } from "@/components/cart/cart-modal"
 
-export function CartBar() {
+
+interface CartBarProps {
+  origin: "mesa" | "balcao" | "delivery"
+}
+
+export function CartBar({ origin }: CartBarProps) {
   const { total, itemCount } = useCart()
+  const [open, setOpen] = useState(false)
 
   if (itemCount === 0) return null
 
@@ -25,9 +32,15 @@ export function CartBar() {
           </div>
         </div>
 
-        <Button asChild size="lg" className="font-semibold px-6">
-          <Link href="/pedido">Ver carrinho</Link>
+        <Button onClick={() => setOpen(true)} size="lg" className="font-semibold px-6">
+          Ver carrinho
         </Button>
+        
+        <CartModal
+          open={open}
+          onClose={() => setOpen(false)}
+          origin={origin}
+        />
       </div>
     </div>
   )

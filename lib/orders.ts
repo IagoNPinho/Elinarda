@@ -7,6 +7,7 @@ export type OrderStatus =
   | "out_for_delivery"
   | "delivered"
   | "closed"
+  | "cancelled"
 
 export type PaymentMethod =
   | "dinheiro"
@@ -32,7 +33,10 @@ export interface Order {
 
   customer_name?: string | null
   customer_phone?: string | null
-  customer_address?: string | null
+  customer_street?: string | null
+  customer_number?: string | null
+  customer_neighborhood?: string | null
+  customer_cep?: string | null
 
   items: OrderItem[]
 
@@ -52,7 +56,10 @@ export async function createOrderInDB({
   tableNumber,
   customerName,
   customerPhone,
-  customerAddress,
+  customerStreet,
+  customerNumber,
+  customerNeighborhood,
+  customerCep,
   items,
   subtotal,
   deliveryFee = 0,
@@ -61,7 +68,10 @@ export async function createOrderInDB({
   tableNumber?: number
   customerName?: string
   customerPhone?: string
-  customerAddress?: string
+  customerStreet?: string
+  customerNumber?: string
+  customerNeighborhood?: string
+  customerCep?: string
   items: any[]
   subtotal: number
   deliveryFee?: number
@@ -71,9 +81,21 @@ export async function createOrderInDB({
   const { error } = await supabase.from("orders").insert({
     origin,
     table_number: origin === "mesa" ? tableNumber : null,
+
     customer_name: customerName ?? null,
     customer_phone: customerPhone ?? null,
-    customer_address: customerAddress ?? null,
+
+    customer_street: customerStreet ?? null,
+    customer_number: customerNumber ?? null,
+    customer_neighborhood: customerNeighborhood ?? null,
+    customer_cep: customerCep ?? null,
+
+    // manter por compatibilidade (derivado)
+    customer_address:
+      origin === "delivery" && customerStreet
+        ? `${customerStreet}, ${customerNumber} - ${customerNeighborhood} | CEP ${customerCep}`
+        : null,
+
     status: "pending",
     items,
     subtotal,
@@ -81,15 +103,15 @@ export async function createOrderInDB({
     total,
   })
 
-
   if (error) throw error
 }
+
 
 export async function fetchOpenOrders(): Promise<Order[]> {
   const { data, error } = await supabase
     .from("orders")
     .select("*")
-    .neq("status", "closed")
+    .not("status", "in", '("closed","cancelled")')
     .order("created_at", { ascending: false })
 
   if (error) throw error
@@ -118,6 +140,7 @@ export async function updateOrderStatus(
     | "out_for_delivery"
     | "delivered"
     | "closed"
+    | "cancelled"
 ) {
   const { error } = await supabase
     .from("orders")
@@ -150,3 +173,20 @@ export async function closeOrder({
     throw error
   }
 }
+
+export async function cancelOrder(id: string) {
+  const { error } = await supabase
+    .from("orders")
+    .update({
+      status: "cancelled",
+      payment_method: null,
+      payment_details: null,
+    })
+    .eq("id", id)
+
+  if (error) {
+    console.error("Erro ao cancelar pedido:", error)
+    throw error
+  }
+}
+

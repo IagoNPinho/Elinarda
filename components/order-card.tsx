@@ -47,6 +47,11 @@ export function OrderCard({ order, onRefresh }: OrderCardProps) {
       icon: Check,
       color: "text-muted-foreground bg-muted",
     },
+    cancelled: {
+      label: "Cancelado",
+      icon: FileText,
+      color: "text-red-700 bg-red-100",
+    }
   }
 
   const status = statusConfig[order.status]
