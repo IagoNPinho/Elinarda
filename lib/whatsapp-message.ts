@@ -3,7 +3,7 @@
 import type { CartItem } from "@/components/cart-provider"
 import type { Order } from "@/lib/orders"
 
-const RESTAURANT_WHATSAPP = "5585988224901"
+const RESTAURANT_WHATSAPP = "558587147033"
 
 interface WhatsAppOrderPayload {
     customer: {
@@ -91,9 +91,7 @@ Qualquer dúvida, estamos à disposição.
 `.trim()
 
     const encoded = encodeURIComponent(message)
-
     const phone = order.customer_phone.replace(/\D/g, "")
-
     const url = `https://wa.me/${phone}?text=${encoded}`
 
     window.open(url, "_blank")
