@@ -30,10 +30,12 @@ export default function AdminPage() {
   const router = useRouter()
 
   // Estados Delivery
+  const [deliveryId, setDeliveryId] = useState<string | null>(null)
   const [deliveryFee, setDeliveryFee] = useState(0)
   const [isOpen, setIsOpen] = useState(true)
   const [loadingSettings, setLoadingSettings] = useState(true)
   const [showSaved, setShowSaved] = useState(false)
+  const [savingSettings, setSavingSettings] = useState(false)
 
   // Estados Relatório
   const [selectedDate, setSelectedDate] = useState<Date>(new Date())
@@ -110,6 +112,7 @@ export default function AdminPage() {
     const loadSettings = async () => {
       try {
         const settings = await fetchDeliverySettings()
+        setDeliveryId(settings.id)
         setDeliveryFee(settings.delivery_fee)
         setIsOpen(settings.is_open)
       } finally {
@@ -122,13 +125,37 @@ export default function AdminPage() {
 
   // Salvar Configurações de delivery
   const handleSave = async () => {
-    await updateDeliverySettings({
-      delivery_fee: deliveryFee,
-      is_open: isOpen,
-    })
+    if (!deliveryId) return
 
-    setShowSaved(true)
-    setTimeout(() => setShowSaved(false), 3000)
+    try {
+      setSavingSettings(true)
+      await updateDeliverySettings({
+        id: deliveryId,
+        delivery_fee: deliveryFee,
+        is_open: isOpen,
+      })
+
+      setShowSaved(true)
+      setTimeout(() => setShowSaved(false), 3000)
+    } finally {
+      setSavingSettings(false)
+    }
+  }
+
+  const handleToggleStatus = async () => {
+    if (!deliveryId) return
+    const next = !isOpen
+    setIsOpen(next)
+
+    try {
+      setSavingSettings(true)
+      await updateDeliverySettings({
+        id: deliveryId,
+        is_open: next,
+      })
+    } finally {
+      setSavingSettings(false)
+    }
   }
 
   // Exportar CSV
@@ -423,7 +450,8 @@ export default function AdminPage() {
 
               <Button
                 variant={isOpen ? "destructive" : "default"}
-                onClick={() => setIsOpen((prev) => !prev)}
+                onClick={handleToggleStatus}
+                disabled={loadingSettings || savingSettings}
               >
                 {isOpen ? "Fechar Delivery" : "Abrir Delivery"}
               </Button>
@@ -434,7 +462,7 @@ export default function AdminPage() {
           <Button
             onClick={handleSave}
             className="w-full"
-            disabled={loadingSettings}
+            disabled={loadingSettings || savingSettings || !deliveryId}
           >
             Salvar
           </Button>

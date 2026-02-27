@@ -15,7 +15,22 @@ export default function DeliveryPageContent() {
     const [settings, setSettings] = useState<DeliverySettings | null>(null)
 
     useEffect(() => {
-        fetchDeliverySettings().then(setSettings)
+        let mounted = true
+
+        const load = async () => {
+            const data = await fetchDeliverySettings()
+            if (mounted) setSettings(data)
+        }
+
+        load()
+
+        const intervalMs = 60_000
+        const interval = setInterval(load, intervalMs)
+
+        return () => {
+            mounted = false
+            clearInterval(interval)
+        }
     }, [])
 
 
