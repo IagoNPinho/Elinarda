@@ -202,12 +202,22 @@ export function CartModal({ open, onClose, origin }: CartModalProps) {
                                 </div>
                             </div>
 
+                            {origin === "delivery" && settings && !settings.is_open && (
+                                <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                                    Delivery está fechado no momento. Assim que reabrirmos, você poderá confirmar seu pedido por aqui.
+                                </div>
+                            )}
+
                             <Button
                                 className="w-full"
                                 onClick={handleConfirmCart}
-                                disabled={loading || !settings?.is_open}
+                                disabled={loading || (origin === "delivery" && !settings?.is_open)}
                             >
-                                {loading ? "Processando..." : "Confirmar pedido"}
+                                {loading
+                                    ? "Processando..."
+                                    : origin === "delivery" && settings && !settings.is_open
+                                        ? "Delivery fechado"
+                                        : "Confirmar pedido"}
                             </Button>
                         </>
                     )}
