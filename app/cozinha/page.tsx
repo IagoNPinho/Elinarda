@@ -13,7 +13,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-import { generateOrderThermalPDF } from "@/lib/generate-order-pdf-thermal"
 import type { Order } from "@/lib/orders"
 import { fetchOpenOrders, updateOrderStatus, cancelOrder } from "@/lib/orders"
 import { ConfirmModal } from "@/components/confirm-cancel-modal"
@@ -65,7 +64,7 @@ export default function KitchenPage() {
     if (order.status === "pending") {
       await updateOrderStatus(order.id, "preparing")
     }
-    generateOrderThermalPDF(order, { width: 58 })
+    window.open(`/print/${order.id}`, "_blank", "noopener,noreferrer")
   }
 
   const statusLabel: Record<Order["status"], string> = {
@@ -117,7 +116,7 @@ export default function KitchenPage() {
             <ArrowLeft />
           </Button>
           <div className="flex items-center gap-1">
-            <img src="/logo.svg" alt="Restaurante" className="w-12 h-12" />
+            <img src="/logo.jpeg" alt="Restaurante" className="w-12 h-12" />
             <h1 className="text-xl font-bold">Cozinha</h1>
           </div>
 
@@ -229,7 +228,7 @@ export default function KitchenPage() {
               <div className="flex justify-between items-start">
                 <div>
                   <h2 className="font-bold">
-                    Pedido #{order.id.slice(0, 6)}
+                    Pedido #{order.daily_order_number ?? order.id.slice(0, 6)}
                   </h2>
 
                   {order.origin === "mesa" && (
@@ -249,6 +248,12 @@ export default function KitchenPage() {
                       <p className="text-xs text-muted-foreground">
                         {order.customer_phone}
                       </p>
+                      {order.delivery_ordered_at && (
+                        <p className="text-xs text-muted-foreground">
+                          Pedido feito:{" "}
+                          {new Date(order.delivery_ordered_at).toLocaleString("pt-BR")}
+                        </p>
+                      )}
                     </>
                   )}
                 </div>
@@ -262,11 +267,26 @@ export default function KitchenPage() {
                 {order.items.map((item: any, idx: number) => (
                   <li key={idx}>
                     {item.weightInGrams
-                      ? `${item.name} – ${item.weightInGrams}g`
+                      ? `${item.quantity}x ${item.name} (${item.weightInGrams}g)`
                       : `${item.quantity}x ${item.name} (${item.sizeLabel})`}
-                  </li>
-                ))}
-              </ul>
+                    {(item.base || item.salad || item.optional || item.proteins || item.options) && (
+                      <div className="text-xs text-muted-foreground mt-1 space-y-0.5">
+          {item.base && <div>Base: {item.base}</div>}
+          {item.salad && <div>Salada: {item.salad}</div>}
+          {item.optional && item.optional.length > 0 && (
+            <div>Opcional: {item.optional.join(", ")}</div>
+          )}
+          {item.proteins && item.proteins.length > 0 && (
+            <div>Proteínas: {item.proteins.map((p) => p.name).join(", ")}</div>
+          )}
+          {item.options && item.options.length > 0 && (
+            <div>Opções: {item.options.join(", ")}</div>
+          )}
+        </div>
+      )}
+    </li>
+  ))}
+</ul>
 
               <div className="flex justify-between items-center pt-2 border-t">
                 <span className="font-bold">

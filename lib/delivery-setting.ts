@@ -4,6 +4,8 @@ export interface DeliverySettings {
   id: string
   is_open: boolean
   delivery_fee: number
+  delivery_open_time?: string | null
+  delivery_close_time?: string | null
 }
 
 export async function fetchDeliverySettings(): Promise<DeliverySettings> {
@@ -21,7 +23,7 @@ export async function fetchDeliverySettings(): Promise<DeliverySettings> {
 }
 
 export async function updateDeliverySettings(
-  payload: Partial<Pick<DeliverySettings, "is_open" | "delivery_fee">> & {
+  payload: Partial<Pick<DeliverySettings, "is_open" | "delivery_fee" | "delivery_open_time" | "delivery_close_time">> & {
     id: string
   }
 ) {
@@ -30,6 +32,8 @@ export async function updateDeliverySettings(
     .update({
       is_open: payload.is_open,
       delivery_fee: payload.delivery_fee,
+      delivery_open_time: payload.delivery_open_time,
+      delivery_close_time: payload.delivery_close_time,
     })
     .eq("id", payload.id)
 

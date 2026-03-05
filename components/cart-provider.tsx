@@ -17,6 +17,12 @@ export interface CartItem {
   price: number
   quantity: number
   weightInGrams?: number
+  base?: string
+  salad?: string
+  optional?: string[]
+  proteins?: { name: string; type: string }[]
+  options?: string[]
+  configKey?: string
 }
 
 interface CartContextType {
@@ -43,9 +49,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const addItem = useCallback(
     (item: Omit<CartItem, "id" | "quantity">) => {
       setItems((prev) => {
-        const existingItem = prev.find(
-          (i) => i.itemId === item.itemId && i.size === item.size,
-        )
+        const key = item.configKey ?? `${item.itemId}:${item.size}:${item.weightInGrams ?? ""}`
+        const existingItem = prev.find((i) => {
+          const existingKey =
+            i.configKey ?? `${i.itemId}:${i.size}:${i.weightInGrams ?? ""}`
+          return existingKey === key
+        })
 
         if (existingItem) {
           return prev.map((i) =>

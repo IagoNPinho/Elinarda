@@ -33,6 +33,8 @@ export default function AdminPage() {
   const [deliveryId, setDeliveryId] = useState<string | null>(null)
   const [deliveryFee, setDeliveryFee] = useState(0)
   const [isOpen, setIsOpen] = useState(true)
+  const [openTime, setOpenTime] = useState("16:30")
+  const [closeTime, setCloseTime] = useState("23:00")
   const [loadingSettings, setLoadingSettings] = useState(true)
   const [showSaved, setShowSaved] = useState(false)
   const [savingSettings, setSavingSettings] = useState(false)
@@ -115,6 +117,8 @@ export default function AdminPage() {
         setDeliveryId(settings.id)
         setDeliveryFee(settings.delivery_fee)
         setIsOpen(settings.is_open)
+        setOpenTime(settings.delivery_open_time ?? "16:30")
+        setCloseTime(settings.delivery_close_time ?? "23:00")
       } finally {
         setLoadingSettings(false)
       }
@@ -133,6 +137,8 @@ export default function AdminPage() {
         id: deliveryId,
         delivery_fee: deliveryFee,
         is_open: isOpen,
+        delivery_open_time: openTime,
+        delivery_close_time: closeTime,
       })
 
       setShowSaved(true)
@@ -193,12 +199,14 @@ export default function AdminPage() {
 
     orders.forEach((order) => {
       rows.push([
-        order.id.slice(0, 6),
+        String(order.daily_order_number ?? order.id.slice(0, 6)),
         order.origin,
         order.total.toFixed(2),
         order.payment_method ?? "-",
         order.status,
-        new Date(order.created_at).toLocaleTimeString("pt-BR"),
+        order.origin === "delivery" && order.delivery_ordered_at
+          ? new Date(order.delivery_ordered_at).toLocaleTimeString("pt-BR")
+          : new Date(order.created_at).toLocaleTimeString("pt-BR"),
       ])
     })
 
@@ -391,7 +399,7 @@ export default function AdminPage() {
                   onClick={() => router.push(`/admin/pedidos/${order.id}`)}
                 >
                   <TableCell className="font-medium">
-                    #{order.id.slice(0, 6)}
+                    #{order.daily_order_number ?? order.id.slice(0, 6)}
                   </TableCell>
                   <TableCell className="capitalize">
                     {order.origin}
@@ -406,7 +414,10 @@ export default function AdminPage() {
                     {order.status}
                   </TableCell>
                   <TableCell>
-                    {new Date(order.created_at).toLocaleTimeString("pt-BR")}
+                    {(order.origin === "delivery" && order.delivery_ordered_at
+                      ? new Date(order.delivery_ordered_at)
+                      : new Date(order.created_at)
+                    ).toLocaleTimeString("pt-BR")}
                   </TableCell>
                 </TableRow>
               ))}
@@ -431,6 +442,25 @@ export default function AdminPage() {
                 setDeliveryFee(parseFloat(e.target.value) || 0)
               }
             />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label>Horário de abertura</Label>
+              <Input
+                type="time"
+                value={openTime}
+                onChange={(e) => setOpenTime(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Horário de fechamento</Label>
+              <Input
+                type="time"
+                value={closeTime}
+                onChange={(e) => setCloseTime(e.target.value)}
+              />
+            </div>
           </div>
 
           <div className="space-y-3">

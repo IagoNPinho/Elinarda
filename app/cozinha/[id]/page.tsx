@@ -4,7 +4,6 @@ import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { ArrowLeft, FileText, Check, ChefHat } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { generateOrderThermalPDF } from "@/lib/generate-order-pdf-thermal"
 import {
   updateOrderStatus,
   fetchOrderById,
@@ -65,7 +64,7 @@ export default function KitchenOrderPage() {
       await updateOrderStatus(order.id, "preparing")
     }
 
-    generateOrderThermalPDF(order, { width: 58 })
+    window.open(`/print/${order.id}`, "_blank", "noopener,noreferrer")
     loadOrder()
   }
 
@@ -125,7 +124,7 @@ export default function KitchenOrderPage() {
 
           <div className="flex-1">
             <h1 className="text-xl font-bold">
-              Pedido #{order.id.slice(0, 6)}
+              Pedido #{order.daily_order_number ?? order.id.slice(0, 6)}
             </h1>
 
             {order.origin === "mesa" && (
@@ -138,6 +137,12 @@ export default function KitchenOrderPage() {
               <span className="inline-block mt-1 text-xs font-semibold bg-orange-500 text-white px-2 py-0.5 rounded">
                 DELIVERY
               </span>
+            )}
+            {order.origin === "delivery" && order.delivery_ordered_at && (
+              <p className="text-xs opacity-90">
+                Pedido feito:{" "}
+                {new Date(order.delivery_ordered_at).toLocaleString("pt-BR")}
+              </p>
             )}
           </div>
 
@@ -202,24 +207,39 @@ export default function KitchenOrderPage() {
 
         {/* ITENS */}
         <ul className="border rounded-lg p-4 space-y-2">
-          {order.items.map((item: any, idx: number) => (
-            <li key={idx} className="text-sm">
-              {item.weightInGrams ? (
-                <>
-                  {item.name} – {item.weightInGrams}g
-                  <span className="text-muted-foreground">
-                    {" "}
-                    • vendido por peso
-                  </span>
-                </>
-              ) : (
-                <>
-                  {item.quantity}x {item.name} ({item.sizeLabel})
-                </>
-              )}
-            </li>
-          ))}
-        </ul>
+  {order.items.map((item: any, idx: number) => (
+    <li key={idx} className="text-sm">
+      {item.weightInGrams ? (
+        <>
+          {item.quantity}x {item.name} ({item.weightInGrams}g)
+          <span className="text-muted-foreground">
+            {" "}
+            • vendido por peso
+          </span>
+        </>
+      ) : (
+        <>
+          {item.quantity}x {item.name} ({item.sizeLabel})
+        </>
+      )}
+      {(item.base || item.salad || item.optional || item.proteins || item.options) && (
+        <div className="text-xs text-muted-foreground mt-1 space-y-0.5">
+          {item.base && <div>Base: {item.base}</div>}
+          {item.salad && <div>Salada: {item.salad}</div>}
+          {item.optional && item.optional.length > 0 && (
+            <div>Opcional: {item.optional.join(", ")}</div>
+          )}
+          {item.proteins && item.proteins.length > 0 && (
+            <div>Proteínas: {item.proteins.map((p) => p.name).join(", ")}</div>
+          )}
+          {item.options && item.options.length > 0 && (
+            <div>Opções: {item.options.join(", ")}</div>
+          )}
+        </div>
+      )}
+    </li>
+  ))}
+</ul>
 
         {/* TOTAL */}
         <div className="flex justify-between items-center font-bold text-lg">

@@ -24,12 +24,18 @@ export interface OrderItem {
   price: number
   quantity: number
   weightInGrams?: number
+  base?: string
+  salad?: string
+  optional?: string[]
+  proteins?: { name: string; type: string }[]
+  options?: string[]
 }
 
 export interface Order {
   id: string
   origin: "mesa" | "balcao" | "delivery"
   table_number?: number | null
+  daily_order_number?: number | null
 
   customer_name?: string | null
   customer_phone?: string | null
@@ -37,6 +43,7 @@ export interface Order {
   customer_number?: string | null
   customer_neighborhood?: string | null
   customer_cep?: string | null
+  delivery_ordered_at?: string | null
 
   items: OrderItem[]
 
@@ -74,13 +81,28 @@ export async function createOrderInDB({
   customerCep?: string
   items: any[]
   subtotal: number
-  deliveryFee?: number
+  deliveryFee?: number | null
 }) {
-  const total = subtotal + deliveryFee
+  const todayStart = new Date()
+  todayStart.setHours(0, 0, 0, 0)
+
+  const { count, error: countError } = await supabase
+    .from("orders")
+    .select("id", { count: "exact", head: true })
+    .gte("created_at", todayStart.toISOString())
+
+  if (countError) throw countError
+  const dailyOrderNumber = (count ?? 0) + 1
+
+  const deliveryOrderedAt =
+    origin === "delivery" ? new Date().toISOString() : null
+
+  const total = subtotal + (deliveryFee ?? 0)
 
   const { error } = await supabase.from("orders").insert({
     origin,
     table_number: origin === "mesa" ? tableNumber : null,
+    daily_order_number: dailyOrderNumber,
 
     customer_name: customerName ?? null,
     customer_phone: customerPhone ?? null,
@@ -89,6 +111,7 @@ export async function createOrderInDB({
     customer_number: customerNumber ?? null,
     customer_neighborhood: customerNeighborhood ?? null,
     customer_cep: customerCep ?? null,
+    delivery_ordered_at: deliveryOrderedAt,
 
     // manter por compatibilidade (derivado)
     customer_address:
@@ -99,7 +122,7 @@ export async function createOrderInDB({
     status: "pending",
     items,
     subtotal,
-    delivery_fee: deliveryFee,
+    delivery_fee: deliveryFee ?? null,
     total,
   })
 

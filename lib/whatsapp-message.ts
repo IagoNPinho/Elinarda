@@ -16,7 +16,7 @@ interface WhatsAppOrderPayload {
     }
     items: CartItem[]
     subtotal: number
-    deliveryFee: number
+    deliveryFee: number | null
     total: number
 }
 
@@ -28,16 +28,35 @@ export function generateWhatsAppMessage({
     total,
 }: WhatsAppOrderPayload) {
     const itemsText = items
-        .map((item) =>
-            item.weightInGrams
-                ? `- ${item.name} (${item.weightInGrams}g) — R$ ${(item.price * item.quantity)
-                    .toFixed(2)
-                    .replace(".", ",")}`
-                : `- ${item.quantity}x ${item.name} (${item.sizeLabel}) — R$ ${(item.price * item.quantity)
-                    .toFixed(2)
-                    .replace(".", ",")}`
-        )
+        .map((item) => {
+            const line = item.weightInGrams
+                ? `- ${item.name} (${item.weightInGrams}g)`
+                : `- ${item.quantity}x ${item.name} ${item.sizeLabel}`
+
+            const details: string[] = []
+
+            if (item.base) details.push(`${item.base}`)
+            if (item.salad) details.push(`${item.salad}`)
+            if (item.optional && item.optional.length > 0) {
+                details.push(`${item.optional.join(", ")}`)
+            }
+            if (item.proteins && item.proteins.length > 0) {
+                details.push(`${item.proteins.map((p) => p.name).join(", ")}`)
+            }
+            if (item.options && item.options.length > 0) {
+                details.push(`${item.options.join(", ")}`)
+            }
+
+            return details.length
+                ? `${line}\n${details.map((d) => `  ${d}`).join("\n")}`
+                : line
+        })
         .join("\n")
+
+    const deliveryFeeText =
+        deliveryFee == null
+            ? "a consultar"
+            : `R$ ${deliveryFee.toFixed(2).replace(".", ",")}`
 
     return `
 *NOVO PEDIDO - DELIVERY*
@@ -52,7 +71,7 @@ export function generateWhatsAppMessage({
 ${itemsText}
 
 *Subtotal:* R$ ${subtotal.toFixed(2).replace(".", ",")}
-*Taxa de Entrega:* R$ ${deliveryFee.toFixed(2).replace(".", ",")}
+*Taxa de Entrega:* ${deliveryFeeText}
 *Total:* R$ ${total.toFixed(2).replace(".", ",")}
 
 Pedido realizado pelo sistema

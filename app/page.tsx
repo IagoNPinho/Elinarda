@@ -9,7 +9,7 @@ export default function HomePage() {
       <div className="max-w-md mx-auto pt-12 space-y-8">
         <div className="text-center space-y-2">
           <div className="w-20 h-20 bg-primary rounded-full mx-auto flex items-center justify-center mb-4">
-            <img src="/logo.svg" alt="Restaurante" className="w-12 h-12" />
+            <img src="/logo.jpeg" alt="Restaurante" className="w-12 h-12" />
           </div>
           <h1 className="text-xl font-extrabold tracking-wide">Lá na calçada</h1>
           <p className="text-muted-foreground">Sistema de Pedidos</p>

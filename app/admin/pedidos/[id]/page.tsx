@@ -69,7 +69,7 @@ export default function AdminOrderPage() {
             <Card>
                 <CardContent className="p-4 space-y-2">
                     <h2 className="text-lg font-bold">
-                        Pedido #{order.id.slice(0, 6)}
+                        Pedido #{order.daily_order_number ?? order.id.slice(0, 6)}
                     </h2>
 
                     <p className="text-sm text-muted-foreground capitalize">
@@ -122,14 +122,29 @@ export default function AdminOrderPage() {
                     <h3 className="font-semibold">Itens</h3>
 
                     <ul className="text-sm space-y-1">
-                        {order.items.map((item: any, idx: number) => (
-                            <li key={idx}>
-                                {item.weightInGrams
-                                    ? `${item.name} – ${item.weightInGrams}g`
-                                    : `${item.quantity}x ${item.name} (${item.sizeLabel})`}
-                            </li>
-                        ))}
-                    </ul>
+  {order.items.map((item: any, idx: number) => (
+    <li key={idx}>
+      {item.weightInGrams
+        ? `${item.quantity}x ${item.name} (${item.weightInGrams}g)`
+        : `${item.quantity}x ${item.name} (${item.sizeLabel})`}
+      {(item.base || item.salad || item.optional || item.proteins || item.options) && (
+        <div className="text-xs text-muted-foreground mt-1 space-y-0.5">
+          {item.base && <div>Base: {item.base}</div>}
+          {item.salad && <div>Salada: {item.salad}</div>}
+          {item.optional && item.optional.length > 0 && (
+            <div>Opcional: {item.optional.join(", ")}</div>
+          )}
+          {item.proteins && item.proteins.length > 0 && (
+            <div>Proteínas: {item.proteins.map((p) => p.name).join(", ")}</div>
+          )}
+          {item.options && item.options.length > 0 && (
+            <div>Opções: {item.options.join(", ")}</div>
+          )}
+        </div>
+      )}
+    </li>
+  ))}
+</ul>
                 </CardContent>
             </Card>
 

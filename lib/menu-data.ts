@@ -10,6 +10,7 @@ export interface MenuItem {
   category: string
   soldByWeight?: boolean
   pricePerKg?: number
+  kind?: "standard" | "pratinho" | "porcao"
 }
 
 export const menuByDay: Record<number, MenuItem[]> = {
@@ -202,7 +203,8 @@ export const menuByDay: Record<number, MenuItem[]> = {
         { size: "U", label: "Único", price: 0 },
       ],
       category: "Porções",
-      soldByWeight: false,
+      soldByWeight: true,
+      pricePerKg: 68.0,
     },
     {
       id: "19",
@@ -1960,14 +1962,82 @@ export function getActiveMenu() {
 
   const menu = menuByDay[activeDay] ?? []
 
+  const normalizedMenu = menu.map((item) => {
+    const name = item.name.toLowerCase()
+    if (item.category === "Pratos" && (name === "sopa" || name === "canja")) {
+      return {
+        ...item,
+        category: "Porções",
+        sizes: item.sizes.length ? item.sizes : [{ size: "U", label: "Único", price: 0 }],
+      }
+    }
+    return item
+  })
+
+  const pratinhoItem: MenuItem = {
+    id: "pratinho",
+    name: "Pratinho",
+    description: "Monte seu pratinho com base, salada e proteínas",
+    sizes: [
+      { size: "P", label: "P", price: 0 },
+      { size: "G", label: "G", price: 0 },
+    ],
+    category: "Pratinhos",
+    kind: "pratinho",
+  }
+
+  const porcaoItem: MenuItem = {
+    id: "porcao-creme-vatapa",
+    name: "Porções",
+    description: "Escolha Creme e/ou Vatapá",
+    sizes: [
+      { size: "P", label: "P", price: 15 },
+      { size: "G", label: "G", price: 18 },
+    ],
+    category: "Porções",
+    kind: "porcao",
+  }
+
+  const menuWithConfig = [
+    pratinhoItem,
+    porcaoItem,
+    ...normalizedMenu.filter((item) => item.category !== "Pratos"),
+  ]
+
   const categories = Array.from(
-    new Set(menu.map((item) => item.category))
+    new Set(menuWithConfig.map((item) => item.category)),
   )
+
+  const preferredOrder = [
+    "Pratinhos",
+    "Porções",
+    "Pratos no peso",
+    "Pratos",
+    "Bebidas",
+    "Sobremesas",
+  ]
+
+  const orderedCategories = [
+    ...preferredOrder.filter((c) => categories.includes(c)),
+    ...categories.filter((c) => !preferredOrder.includes(c)),
+  ]
 
   return {
     dayIndex: activeDay,
     dayLabel: DAY_LABELS[activeDay],
-    menu,
-    categories,
+    menu: menuWithConfig,
+    categories: orderedCategories,
   }
-} 
+}
+
+export function getActiveDayIndex() {
+  const today = new Date().getDay()
+  return getNextAvailableDay(today)
+}
+
+export function getDayProteinNames(dayIndex: number) {
+  const menu = menuByDay[dayIndex] ?? []
+  return menu
+    .filter((item) => item.category === "Pratos")
+    .map((item) => item.name)
+}

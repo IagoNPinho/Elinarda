@@ -4,7 +4,6 @@ import { FileText, Clock, Check, ChefHat } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import type { Order } from "@/lib/orders"
-import { generateOrderThermalPDF } from "@/lib/generate-order-pdf-thermal"
 import { updateOrderStatus } from "@/lib/orders"
 
 interface OrderCardProps {
@@ -62,7 +61,7 @@ export function OrderCard({ order, onRefresh }: OrderCardProps) {
       await updateOrderStatus(order.id, "preparing")
     }
 
-    await generateOrderThermalPDF(order, { width: 58 })
+    window.open(`/print/${order.id}`, "_blank", "noopener,noreferrer")
 
     onRefresh?.()
   }
@@ -78,7 +77,7 @@ export function OrderCard({ order, onRefresh }: OrderCardProps) {
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-lg font-bold text-foreground">
-              Pedido #{order.id.slice(0, 6)}
+              Pedido #{order.daily_order_number ?? order.id.slice(0, 6)}
             </h3>
 
             {order.origin === "mesa" && order.table_number && (
@@ -88,9 +87,15 @@ export function OrderCard({ order, onRefresh }: OrderCardProps) {
             )}
 
             {order.origin === "delivery" && (
-              <p className="text-sm text-muted-foreground">
-                Delivery
-              </p>
+              <div className="text-sm text-muted-foreground space-y-0.5">
+                <p>Delivery</p>
+                {order.delivery_ordered_at && (
+                  <p>
+                    Pedido feito:{" "}
+                    {new Date(order.delivery_ordered_at).toLocaleString("pt-BR")}
+                  </p>
+                )}
+              </div>
             )}
           </div>
 
@@ -114,7 +119,7 @@ export function OrderCard({ order, onRefresh }: OrderCardProps) {
               <div>
                 {item.weightInGrams ? (
                   <span className="font-medium text-foreground">
-                    {item.name} – {item.weightInGrams}g
+                    {item.quantity}x {item.name} ({item.weightInGrams}g)
                     <span className="ml-1 text-xs text-muted-foreground">
                       • vendido por peso
                     </span>
@@ -126,6 +131,23 @@ export function OrderCard({ order, onRefresh }: OrderCardProps) {
                       ({item.sizeLabel})
                     </span>
                   </span>
+                )}
+                {(item.base || item.salad || item.optional || item.proteins || item.options) && (
+                  <div className="text-xs text-muted-foreground mt-1 space-y-0.5">
+                    {item.base && <div>Base: {item.base}</div>}
+                    {item.salad && <div>Salada: {item.salad}</div>}
+                    {item.optional && item.optional.length > 0 && (
+                      <div>Opcional: {item.optional.join(", ")}</div>
+                    )}
+                    {item.proteins && item.proteins.length > 0 && (
+                      <div>
+                        Proteínas: {item.proteins.map((p) => p.name).join(", ")}
+                      </div>
+                    )}
+                    {item.options && item.options.length > 0 && (
+                      <div>Opções: {item.options.join(", ")}</div>
+                    )}
+                  </div>
                 )}
               </div>
 

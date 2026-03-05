@@ -24,7 +24,7 @@ export default function AdminLayout({
                     <ArrowLeft />
                 </Button>
                 <div className="max-w-2xl mx-auto flex items-center gap-3">
-                    <img src="/logo.svg" alt="Restaurante" className="w-12 h-12" />
+                    <img src="/logo.jpeg" alt="Restaurante" className="w-12 h-12" />
                     <div>
                         <h1 className="text-xl font-extrabold tracking-wide">
                             Administração

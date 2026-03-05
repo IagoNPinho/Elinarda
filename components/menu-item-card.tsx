@@ -4,15 +4,9 @@ import { useState } from "react"
 import { Plus, Minus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { useCart } from "@/components/cart-provider"
 import type { MenuItem } from "@/lib/menu-data"
-
-interface CartItem extends MenuItem {
-  size: string
-  sizeLabel: string
-  price: number
-  weightInGrams?: number
-}
+import { PratinhoBuilder } from "@/components/pratinho-builder"
+import { PorcaoBuilder } from "@/components/porcao-builder"
 
 interface MenuItemCardProps {
   item: MenuItem
@@ -23,6 +17,12 @@ interface MenuItemCardProps {
     sizeLabel: string
     price: number
     weightInGrams?: number
+    base?: string
+    salad?: string
+    optional?: string[]
+    proteins?: { name: string; type: string }[]
+    options?: string[]
+    configKey?: string
   }) => void
 }
 
@@ -80,17 +80,29 @@ export function MenuItemCard({
   }
 
   return (
-    <Card className="overflow-hidden">
-      <CardContent className="p-4">
-        <div className="mb-2">
+    <Card className="overflow-hidden py-4 sm:py-6">
+      <CardContent className="px-4">
+        <div className="mb-1">
           <h3 className="font-semibold text-lg text-foreground">
             {item.name}
           </h3>
-          <p className="text-sm text-muted-foreground leading-relaxed">
-            {item.description}
-          </p>
+          {item.kind !== "pratinho" && (
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              {item.description}
+            </p>
+          )}
         </div>
 
+        {item.kind === "pratinho" && (
+          <PratinhoBuilder onAdd={onAddItem} />
+        )}
+
+        {item.kind === "porcao" && (
+          <PorcaoBuilder onAdd={onAddItem} />
+        )}
+
+        {item.kind === "pratinho" || item.kind === "porcao" ? null : (
+          <>
         {/* TAMANHOS (somente itens normais) */}
         {!isWeightItem && item.sizes.length > 1 && (
           <div className="flex gap-2 mb-3">
@@ -109,13 +121,11 @@ export function MenuItemCard({
           </div>
         )}
 
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
           <span className="text-xl font-bold text-primary">
             R$ {price.toFixed(2).replace(".", ",")}
           </span>
-        </div>
 
-        <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             {/* CONTROLE */}
             <div className="flex items-center bg-secondary rounded-lg">
@@ -125,13 +135,13 @@ export function MenuItemCard({
                     ? setWeight(Math.max(50, weight - 50))
                     : setQuantity(Math.max(1, quantity - 1))
                 }
-                className="p-2 hover:bg-secondary/80 rounded-l-lg transition-colors text-white"
+                className="p-1 hover:bg-secondary/80 rounded-l-lg transition-colors text-white"
                 aria-label="Diminuir"
               >
                 <Minus className="w-4 h-4" />
               </button>
 
-              <span className="w-12 text-center text-white font-medium">
+              <span className="w-8 text-center text-white font-medium">
                 {isWeightItem ? `${weight}g` : quantity}
               </span>
 
@@ -148,12 +158,14 @@ export function MenuItemCard({
               </button>
             </div>
 
-            <Button onClick={handleAdd} size="lg" className="font-semibold">
-              <Plus className="w-4 h-4 mr-1" />
+            <Button onClick={handleAdd} size="lg" className="font-semibold px-3">
+              <Plus className="w-4 h-4" />
               Adicionar
             </Button>
           </div>
         </div>
+        </>
+        )}
 
 
       </CardContent>
