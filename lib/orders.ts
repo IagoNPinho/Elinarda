@@ -34,6 +34,7 @@ export interface OrderItem {
 export interface Order {
   id: string
   origin: "mesa" | "balcao" | "delivery"
+  fulfillment_type?: "pickup" | "delivery" | null
   table_number?: number | null
   daily_order_number?: number | null
 
@@ -60,6 +61,7 @@ export interface Order {
 
 export async function createOrderInDB({
   origin,
+  fulfillmentType,
   tableNumber,
   customerName,
   customerPhone,
@@ -67,11 +69,14 @@ export async function createOrderInDB({
   customerNumber,
   customerNeighborhood,
   customerCep,
+  paymentMethod,
+  paymentDetails,
   items,
   subtotal,
   deliveryFee = 0,
 }: {
   origin: "mesa" | "balcao" | "delivery"
+  fulfillmentType?: "pickup" | "delivery"
   tableNumber?: number
   customerName?: string
   customerPhone?: string
@@ -79,6 +84,8 @@ export async function createOrderInDB({
   customerNumber?: string
   customerNeighborhood?: string
   customerCep?: string
+  paymentMethod?: PaymentMethod
+  paymentDetails?: string
   items: any[]
   subtotal: number
   deliveryFee?: number | null
@@ -97,10 +104,16 @@ export async function createOrderInDB({
   const deliveryOrderedAt =
     origin === "delivery" ? new Date().toISOString() : null
 
+  const resolvedFulfillmentType =
+    fulfillmentType ?? (origin === "delivery" ? "delivery" : "pickup")
+
   const total = subtotal + (deliveryFee ?? 0)
 
+  console.log("Criando pedido no banco", {paymentMethod})
+  
   const { error } = await supabase.from("orders").insert({
     origin,
+    fulfillment_type: resolvedFulfillmentType,
     table_number: origin === "mesa" ? tableNumber : null,
     daily_order_number: dailyOrderNumber,
 
@@ -124,7 +137,11 @@ export async function createOrderInDB({
     subtotal,
     delivery_fee: deliveryFee ?? null,
     total,
+    payment_method: paymentMethod ?? null,
+    payment_details: paymentDetails ?? null,
   })
+
+  console.log("aqui")
 
   if (error) throw error
 }

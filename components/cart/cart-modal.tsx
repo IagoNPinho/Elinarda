@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useCart } from "@/components/cart-provider"
-import { createOrderInDB } from "@/lib/orders"
+import { createOrderInDB, type PaymentMethod } from "@/lib/orders"
 import { generateWhatsAppMessage, openWhatsAppOrder } from "@/lib/whatsapp-message"
 import { DeliverySettings, fetchDeliverySettings } from "@/lib/delivery-setting"
 import { DeliveryFee, fetchDeliveryFeeByNeighborhood, fetchDeliveryFees } from "@/lib/delivery-fees"
@@ -33,23 +33,21 @@ export function CartModal({ open, onClose, origin }: CartModalProps) {
     const [settings, setSettings] = useState<DeliverySettings | null>(null)
     const [fees, setFees] = useState<DeliveryFee[]>([])
     const [deliveryFee, setDeliveryFee] = useState<number | null>(0)
-    const [cepLoading, setCepLoading] = useState(false)
-    const [cepError, setCepError] = useState<string | null>(null)
-    const [lastCepLookup, setLastCepLookup] = useState<string>("")
-    const [step, setStep] = useState<"cart" | "customer">("cart")
+    const [step, setStep] = useState<"cart" | "customer" | "fulfillment" | "confirm">("cart")
     const [loading, setLoading] = useState(false)
     const [submitError, setSubmitError] = useState<string | null>(null)
     const [now, setNow] = useState(Date.now())
+    const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null)
+    const [paymentDetails, setPaymentDetails] = useState("")
+    const [fulfillmentType, setFulfillmentType] = useState<"pickup" | "delivery">("delivery")
 
     const [customer, setCustomer] = useState({
         name: "",
         phone: "",
         street: "",
         number: "",
+        complement: "",
         neighborhood: "",
-        cep: "",
-        city: "",
-        state: "",
     })
 
     useEffect(() => {
@@ -75,8 +73,12 @@ export function CartModal({ open, onClose, origin }: CartModalProps) {
     const sortedFees = fees
         .slice()
         .sort((a, b) => a.neighborhood.localeCompare(b.neighborhood))
+    const effectiveDeliveryFee =
+        origin === "delivery" && fulfillmentType === "delivery"
+            ? deliveryFee ?? 0
+            : 0
     const finalTotal =
-        origin === "delivery" ? total + (deliveryFee ?? 0) : total
+        origin === "delivery" ? total + effectiveDeliveryFee : total
 
     function formatPhone(value: string) {
         return value
@@ -109,18 +111,31 @@ export function CartModal({ open, onClose, origin }: CartModalProps) {
 
     const isDeliveryOpen = settings?.is_open && isWithinDeliveryHours()
 
+    const stepTitle =
+        step === "cart"
+            ? "Seu carrinho"
+            : step === "customer"
+                ? "Dados do cliente"
+                : step === "fulfillment"
+                    ? "Tipo de atendimento"
+                    : "Finalizar pedido"
+
     const isCustomerValid =
         customer.name.trim().length >= 3 &&
-        customer.phone.replace(/\D/g, "").length === 11 &&
-        customer.street &&
-        customer.number &&
-        customer.neighborhood &&
-        customer.cep.length === 8
+        customer.phone.replace(/\D/g, "").length === 11
+
+    const isDeliveryAddressValid =
+        fulfillmentType === "delivery"
+            ? !!customer.street && !!customer.number && !!customer.neighborhood
+            : true
+
+    const isPaymentValid = !!paymentMethod
 
     async function handleNeighborhoodChange(value: string) {
         setCustomer({ ...customer, neighborhood: value })
 
         if (origin !== "delivery") return
+        if (fulfillmentType !== "delivery") return
 
         if (!value || value === OTHER_NEIGHBORHOOD) {
             setDeliveryFee(null)
@@ -131,47 +146,13 @@ export function CartModal({ open, onClose, origin }: CartModalProps) {
         setDeliveryFee(fee)
     }
 
-    async function handleCepLookup(cep: string) {
-        if (cep.length !== 8 || cep === lastCepLookup) return
-
-        setCepLoading(true)
-        setCepError(null)
-        setLastCepLookup(cep)
-
-        try {
-            const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`)
-            const data = await response.json()
-
-            if (data.erro) {
-                setCepError("CEP não encontrado")
-                setCepLoading(false)
-                return
-            }
-
-            const neighborhoodFromCep = data.bairro ?? ""
-            setCustomer((prev) => ({
-                ...prev,
-                street: data.logradouro ?? prev.street,
-                neighborhood: neighborhoodFromCep || prev.neighborhood,
-                city: data.localidade ?? prev.city,
-                state: data.uf ?? prev.state,
-            }))
-
-            if (neighborhoodFromCep) {
-                const matches = fees.find(
-                    (fee) => fee.neighborhood === neighborhoodFromCep
-                )
-
-                if (matches) {
-                    await handleNeighborhoodChange(neighborhoodFromCep)
-                } else {
-                    await handleNeighborhoodChange(OTHER_NEIGHBORHOOD)
-                }
-            }
-        } catch {
-            setCepError("Falha ao buscar CEP")
-        } finally {
-            setCepLoading(false)
+    function handleFulfillmentChange(value: "pickup" | "delivery") {
+        setFulfillmentType(value)
+        if (value === "pickup") {
+            setDeliveryFee(null)
+        }
+        if (value === "delivery" && customer.neighborhood) {
+            handleNeighborhoodChange(customer.neighborhood)
         }
     }
 
@@ -198,38 +179,52 @@ export function CartModal({ open, onClose, origin }: CartModalProps) {
     }
 
     async function handleConfirmDelivery() {
-        if (!isCustomerValid) return
+        if (!isCustomerValid || !isDeliveryAddressValid || !isPaymentValid) return
 
         setLoading(true)
         setSubmitError(null)
 
         try {
+            const finalCustomerNumber = customer.complement
+                ? `${customer.number} - ${customer.complement}`
+                : customer.number
+
+            const orderOrigin =
+                fulfillmentType === "delivery" ? "delivery" : "balcao"
+
             await createOrderInDB({
-                origin: "delivery",
+                origin: orderOrigin,
+                fulfillmentType,
                 customerName: customer.name,
                 customerPhone: customer.phone,
-                customerStreet: customer.street,
-                customerNumber: customer.number,
-                customerNeighborhood: customer.neighborhood,
-                customerCep: customer.cep,
+                customerStreet:
+                    fulfillmentType === "delivery" ? customer.street : undefined,
+                customerNumber:
+                    fulfillmentType === "delivery" ? finalCustomerNumber : undefined,
+                customerNeighborhood:
+                    fulfillmentType === "delivery" ? customer.neighborhood : undefined,
+                paymentMethod: paymentMethod ?? undefined,
+                paymentDetails: paymentDetails || undefined,
                 items,
                 subtotal: total,
-                deliveryFee,
+                deliveryFee: fulfillmentType === "delivery" ? deliveryFee : null,
             })
 
             const message = generateWhatsAppMessage({
+                fulfillmentType,
                 customer: {
                     name: customer.name,
                     phone: customer.phone,
                     street: customer.street,
-                    number: customer.number,
+                    number: finalCustomerNumber,
                     neighborhood: customer.neighborhood,
-                    cep: customer.cep
                 },
                 items,
                 subtotal: total,
-                deliveryFee,
+                deliveryFee: fulfillmentType === "delivery" ? deliveryFee : null,
                 total: finalTotal,
+                paymentMethod,
+                paymentDetails: paymentDetails || null,
             })
 
             openWhatsAppOrder(message)
@@ -254,7 +249,7 @@ export function CartModal({ open, onClose, origin }: CartModalProps) {
                     <div className="flex justify-between items-center">
                         <div>
                             <h2 className="text-lg font-bold">
-                                {step === "cart" ? "Seu carrinho" : "Dados para entrega"}
+                                {stepTitle}
                             </h2>
                             <p className="text-sm text-muted-foreground">
                                 {origin === "mesa" && `Mesa ${tableNumber}`}
@@ -320,7 +315,7 @@ export function CartModal({ open, onClose, origin }: CartModalProps) {
                                     <span>R$ {total.toFixed(2)}</span>
                                 </div>
 
-                        {origin === "delivery" && (
+                        {origin === "delivery" && fulfillmentType === "delivery" && (
                                     <div className="flex justify-between">
                                         <span>Taxa de entrega</span>
                                         {deliveryFee == null ? (
@@ -337,75 +332,114 @@ export function CartModal({ open, onClose, origin }: CartModalProps) {
                                 </div>
                             </div>
 
-                            {origin === "delivery" && settings && !isDeliveryOpen && (
-                                <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-                                    Delivery está fechado no momento. Assim que reabrirmos, você poderá confirmar seu pedido por aqui.
-                                </div>
-                            )}
 
                             <Button
                                 className="w-full"
                                 onClick={handleConfirmCart}
-                                disabled={loading || (origin === "delivery" && !settings?.is_open)}
+                                disabled={loading}
                             >
                                 {loading
                                     ? "Processando..."
-                                    : origin === "delivery" && settings && !isDeliveryOpen
-                                        ? "Delivery fechado"
-                                        : "Confirmar pedido"}
+                                    : "Confirmar pedido"}
                             </Button>
                         </>
                     )}
 
-                    {/* STEP 2 — DADOS DO CLIENTE */}
+                    {/* STEP 2 - DADOS DO CLIENTE */}
                     {step === "customer" && (
                         <>
                             <p className="text-sm text-muted-foreground">
-                                Confira seus dados.<br />Ao confirmar, o WhatsApp será aberto para finalizar o pedido.
+                                Informe seus dados para continuarmos.
                             </p>
 
                             <Label>Nome</Label>
-                            <Input value={customer.name} onChange={(e) =>
-                                setCustomer({ ...customer, name: e.target.value })}
+                            <Input
+                                value={customer.name}
+                                onChange={(e) =>
+                                    setCustomer({ ...customer, name: e.target.value })}
                             />
 
                             <Label>Telefone</Label>
-                            <Input value={customer.phone} onChange={(e) =>
-                                setCustomer({ ...customer, phone: formatPhone(e.target.value) })}
+                            <Input
+                                value={customer.phone}
+                                onChange={(e) =>
+                                    setCustomer({ ...customer, phone: formatPhone(e.target.value) })}
                             />
 
-                            <Label>CEP</Label>
-                            <Input value={customer.cep} onChange={(e) => {
-                                const cep = e.target.value.replace(/\D/g, "").slice(0, 8)
-                                setCustomer({ ...customer, cep })
-                                if (cep.length === 8) {
-                                    handleCepLookup(cep)
-                                }
-                            }}
-                            />
-                            {cepLoading && (
-                                <p className="text-xs text-muted-foreground">
-                                    Buscando CEP...
-                                </p>
-                            )}
-                            {cepError && (
-                                <p className="text-xs text-red-600">{cepError}</p>
-                            )}
+                            <div className="flex gap-2 pt-2">
+                                <Button
+                                    variant="outline"
+                                    className="flex-1"
+                                    onClick={() => setStep("cart")}
+                                >
+                                    Voltar
+                                </Button>
 
-                            <Label>Rua</Label>
-                            <Input value={customer.street} onChange={(e) =>
-                                setCustomer({ ...customer, street: e.target.value })}
-                            />
+                                <Button
+                                    className="flex-[2]"
+                                    disabled={!isCustomerValid || loading}
+                                    onClick={() => setStep("fulfillment")}
+                                >
+                                    Continuar
+                                </Button>
+                            </div>
+                        </>
+                    )}
 
-                            <div className="flex gap-2">
-                                <div className="flex-1">
-                                    <Label>Número</Label>
-                                    <Input value={customer.number} onChange={(e) =>
-                                        setCustomer({ ...customer, number: e.target.value })}
+                    {/* STEP 3 - TIPO DE ATENDIMENTO */}
+                    {step === "fulfillment" && (
+                        <>
+                            <p className="text-sm text-muted-foreground">
+                                Escolha como o pedido sera atendido.
+                            </p>
+
+                            <Label>Tipo de atendimento</Label>
+                            <div className="grid grid-cols-2 gap-2">
+                                <Button
+                                    type="button"
+                                    variant={fulfillmentType === "pickup" ? "default" : "outline"}
+                                    onClick={() => handleFulfillmentChange("pickup")}
+                                >
+                                    Retirada
+                                </Button>
+                                <Button
+                                    type="button"
+                                    variant={fulfillmentType === "delivery" ? "default" : "outline"}
+                                    onClick={() => handleFulfillmentChange("delivery")}
+                                >
+                                    Delivery
+                                </Button>
+                            </div>
+
+                            {fulfillmentType === "delivery" && (
+                                <>
+                                    <Label>Rua</Label>
+                                    <Input
+                                        value={customer.street}
+                                        onChange={(e) =>
+                                            setCustomer({ ...customer, street: e.target.value })}
                                     />
-                                </div>
 
-                                <div className="flex-1">
+                                    <div className="flex gap-2">
+                                        <div className="flex-1">
+                                            <Label>Numero</Label>
+                                            <Input
+                                                value={customer.number}
+                                                onChange={(e) =>
+                                                    setCustomer({ ...customer, number: e.target.value })}
+                                            />
+                                        </div>
+
+                                        <div className="flex-1">
+                                            <Label>Complemento (opcional)</Label>
+                                            <Input
+                                                value={customer.complement}
+                                                onChange={(e) =>
+                                                    setCustomer({ ...customer, complement: e.target.value })}
+                                            />
+                                        </div>
+                                    </div>
+
                                     <Label>Bairro</Label>
                                     <select
                                         className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
@@ -413,63 +447,128 @@ export function CartModal({ open, onClose, origin }: CartModalProps) {
                                         onChange={(e) => handleNeighborhoodChange(e.target.value)}
                                     >
                                         <option value="">Selecione um bairro</option>
-                                    {sortedFees.map((fee) => (
-                                        <option key={fee.id} value={fee.neighborhood}>
-                                            {fee.neighborhood} - R$ {fee.fee.toFixed(2)}
+                                        {sortedFees.map((fee) => (
+                                            <option key={fee.id} value={fee.neighborhood}>
+                                                {fee.neighborhood} - R$ {fee.fee.toFixed(2)}
+                                            </option>
+                                        ))}
+                                        <option value={OTHER_NEIGHBORHOOD}>
+                                            Outro (consultar)
                                         </option>
-                                    ))}
-                                    <option value={OTHER_NEIGHBORHOOD}>
-                                        Outro (consultar)
-                                    </option>
-                                </select>
-                                </div>
-                            </div>
-
-                            <div className="flex gap-2">
-                                <div className="flex-1">
-                                    <Label>Cidade</Label>
-                                    <Input
-                                        value={customer.city}
-                                        onChange={(e) =>
-                                            setCustomer({ ...customer, city: e.target.value })
-                                        }
-                                    />
-                                </div>
-
-                                <div className="w-20">
-                                    <Label>UF</Label>
-                                    <Input
-                                        value={customer.state}
-                                        onChange={(e) =>
-                                            setCustomer({ ...customer, state: e.target.value })
-                                        }
-                                    />
-                                </div>
-                            </div>
+                                    </select>
+                                </>
+                            )}
 
                             <div className="flex gap-2 pt-2">
-                                <Button variant="outline" className="flex-1"
-                                    onClick={() => setStep("cart")}>
+                                <Button
+                                    variant="outline"
+                                    className="flex-1"
+                                    onClick={() => setStep("customer")}
+                                >
                                     Voltar
                                 </Button>
 
                                 <Button
                                     className="flex-[2]"
-                                    disabled={!isCustomerValid || loading}
-                                    onClick={handleConfirmDelivery}
+                                    disabled={!isDeliveryAddressValid || loading}
+                                    onClick={() => setStep("confirm")}
                                 >
-                                    {loading ? "Enviando..." : "Confirmar e ir para WhatsApp"}
+                                    Continuar
                                 </Button>
                             </div>
+                        </>
+                    )}
+
+                    {/* STEP 4 - FINALIZAR */}
+                    {step === "confirm" && (
+                        <>
+                            <div className="border rounded-lg p-3 space-y-1 text-sm">
+                                <div className="flex justify-between">
+                                    <span>Atendimento</span>
+                                    <span>{fulfillmentType === "delivery" ? "Delivery" : "Retirada"}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span>Subtotal</span>
+                                    <span>R$ {total.toFixed(2)}</span>
+                                </div>
+                                {fulfillmentType === "delivery" && (
+                                    <div className="flex justify-between">
+                                        <span>Taxa de entrega</span>
+                                        {deliveryFee == null ? (
+                                            <span>A consultar</span>
+                                        ) : (
+                                            <span>R$ {deliveryFee.toFixed(2)}</span>
+                                        )}
+                                    </div>
+                                )}
+                                <div className="flex justify-between font-bold">
+                                    <span>Total</span>
+                                    <span>R$ {finalTotal.toFixed(2)}</span>
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label>Forma de pagamento</Label>
+                                <div className="grid grid-cols-2 gap-2">
+                                    {(["dinheiro", "pix", "credito", "debito"] as const).map(
+                                        (method) => (
+                                            <Button
+                                                key={method}
+                                                type="button"
+                                                variant={paymentMethod === method ? "default" : "outline"}
+                                                onClick={() => setPaymentMethod(method)}
+                                            >
+                                                {method.toUpperCase()}
+                                            </Button>
+                                        ),
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label>Detalhes do pagamento (opcional)</Label>
+                                <Input
+                                    value={paymentDetails}
+                                    onChange={(e) => setPaymentDetails(e.target.value)}
+                                    placeholder="Ex: troco para 50"
+                                />
+                            </div>
+
+                            {fulfillmentType === "delivery" && settings && !isDeliveryOpen && (
+                                <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                                    Delivery esta fechado no momento. Voce pode trocar para retirada ou aguardar a reabertura.
+                                </div>
+                            )}
+
+                            <div className="flex gap-2 pt-2">
+                                <Button
+                                    variant="outline"
+                                    className="flex-1"
+                                    onClick={() => setStep("fulfillment")}
+                                >
+                                    Voltar
+                                </Button>
+
+                                <Button
+                                    className="flex-[2]"
+                                    disabled={
+                                        loading ||
+                                        !isPaymentValid ||
+                                        (fulfillmentType === "delivery" && !!settings && !isDeliveryOpen)
+                                    }
+                                    onClick={handleConfirmDelivery}
+                                >
+                                    {loading ? "Enviando..." : "Confirmar pedido"}
+                                </Button>
+                            </div>
+
                             {submitError && (
                                 <p className="text-xs text-red-600">{submitError}</p>
                             )}
                         </>
                     )}
-
                 </CardContent>
             </Card>
         </div>
     )
 }
-

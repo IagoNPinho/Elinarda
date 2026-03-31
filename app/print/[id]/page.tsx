@@ -11,6 +11,11 @@ const originLabel: Record<Order["origin"], string> = {
   delivery: "Delivery",
 }
 
+const fulfillmentLabel: Record<"pickup" | "delivery", string> = {
+  pickup: "Retirada",
+  delivery: "Entrega",
+}
+
 export default function PrintOrderPage() {
   const { id } = useParams()
   const router = useRouter()
@@ -61,6 +66,10 @@ export default function PrintOrderPage() {
       ? "a consultar"
       : `R$ ${order.delivery_fee.toFixed(2).replace(".", ",")}`
 
+  const fulfillmentType: "pickup" | "delivery" =
+    (order.fulfillment_type as any) ??
+    (order.origin === "delivery" ? "delivery" : "pickup")
+
   return (
     <main className="thermal-root">
       <div className="no-print flex gap-2 pb-2">
@@ -80,13 +89,11 @@ export default function PrintOrderPage() {
 
       <div className="thermal">
         <div className="text-center text-sm font-semibold">
-          La na Calcada - Restaurante
+          Lá na Calçada - Restaurante
         </div>
 
         <div className="mt-2 text-xs">
-          <div>
-            Pedido #{order.daily_order_number ?? order.id.slice(0, 6)}
-          </div>
+          <div>Pedido #{order.daily_order_number ?? order.id.slice(0, 6)}</div>
           <div>Data/Hora: {formattedDate}</div>
           <div>
             Origem: {originLabel[order.origin]}
@@ -94,6 +101,7 @@ export default function PrintOrderPage() {
               ? ` ${order.table_number}`
               : ""}
           </div>
+          <div>Atendimento: {fulfillmentLabel[fulfillmentType]}</div>
         </div>
 
         {order.origin === "delivery" && (
@@ -104,7 +112,8 @@ export default function PrintOrderPage() {
               {order.customer_street}, {order.customer_number}
             </div>
             <div>
-              {order.customer_neighborhood} - CEP {order.customer_cep}
+              {order.customer_neighborhood}
+              {order.customer_cep ? ` - CEP ${order.customer_cep}` : ""}
             </div>
             {order.delivery_ordered_at && (
               <div>
@@ -121,7 +130,9 @@ export default function PrintOrderPage() {
             <div key={idx} className="mb-2">
               <div className="flex justify-between">
                 <span>
-                  {item.quantity}x {item.name} {item.sizeLabel ? item.sizeLabel : ""}
+                  {item.quantity}x {item.name}
+                  {item.sizeLabel ? ` ${item.sizeLabel}` : ""}
+                  {item.weightInGrams ? ` ${item.weightInGrams}g` : ""}
                 </span>
               </div>
               {item.base && <div>* {item.base}</div>}
@@ -183,3 +194,4 @@ export default function PrintOrderPage() {
     </main>
   )
 }
+

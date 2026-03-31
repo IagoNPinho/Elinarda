@@ -1936,6 +1936,19 @@ export const menuByDay: Record<number, MenuItem[]> = {
   ],
 }
 
+function getMergedMenu() {
+  const map = new Map<string, MenuItem>()
+  Object.values(menuByDay).forEach((items) => {
+    items.forEach((item) => {
+      const key = `${item.id}:${item.category}`
+      if (!map.has(key)) {
+        map.set(key, item)
+      }
+    })
+  })
+  return Array.from(map.values())
+}
+
 const DAY_LABELS = [
   "Domingo",
   "Segunda-feira",
@@ -1958,17 +1971,16 @@ export function getNextAvailableDay(startDay: number) {
 
 export function getActiveMenu() {
   const today = new Date().getDay()
-  const activeDay = getNextAvailableDay(today)
 
-  const menu = menuByDay[activeDay] ?? []
+  const menu = getMergedMenu()
 
   const normalizedMenu = menu.map((item) => {
     const name = item.name.toLowerCase()
     if (item.category === "Pratos" && (name === "sopa" || name === "canja")) {
       return {
         ...item,
-        category: "Porções",
-        sizes: item.sizes.length ? item.sizes : [{ size: "U", label: "Único", price: 0 }],
+        category: "Por????es",
+        sizes: item.sizes.length ? item.sizes : [{ size: "U", label: "??nico", price: 0 }],
       }
     }
     return item
@@ -1977,7 +1989,7 @@ export function getActiveMenu() {
   const pratinhoItem: MenuItem = {
     id: "pratinho",
     name: "Pratinho",
-    description: "Monte seu pratinho com base, salada e proteínas",
+    description: "Monte seu pratinho com base, salada e prote??nas",
     sizes: [
       { size: "P", label: "P", price: 0 },
       { size: "G", label: "G", price: 0 },
@@ -1988,13 +2000,13 @@ export function getActiveMenu() {
 
   const porcaoItem: MenuItem = {
     id: "porcao-creme-vatapa",
-    name: "Porções",
-    description: "Escolha Creme e/ou Vatapá",
+    name: "Por????es",
+    description: "Escolha Creme e/ou Vatap??",
     sizes: [
       { size: "P", label: "P", price: 15 },
       { size: "G", label: "G", price: 18 },
     ],
-    category: "Porções",
+    category: "Por????es",
     kind: "porcao",
   }
 
@@ -2010,7 +2022,7 @@ export function getActiveMenu() {
 
   const preferredOrder = [
     "Pratinhos",
-    "Porções",
+    "Por????es",
     "Pratos no peso",
     "Pratos",
     "Bebidas",
@@ -2023,21 +2035,13 @@ export function getActiveMenu() {
   ]
 
   return {
-    dayIndex: activeDay,
-    dayLabel: DAY_LABELS[activeDay],
+    dayIndex: today,
+    dayLabel: DAY_LABELS[today],
     menu: menuWithConfig,
     categories: orderedCategories,
   }
 }
 
 export function getActiveDayIndex() {
-  const today = new Date().getDay()
-  return getNextAvailableDay(today)
-}
-
-export function getDayProteinNames(dayIndex: number) {
-  const menu = menuByDay[dayIndex] ?? []
-  return menu
-    .filter((item) => item.category === "Pratos")
-    .map((item) => item.name)
+  return new Date().getDay()
 }

@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { useEffect, useMemo, useState } from "react"
 import { Button } from "@/components/ui/button"
@@ -124,16 +124,16 @@ export default function AdminMenuPage() {
     <div className="max-w-4xl mx-auto p-4 space-y-6 pb-10">
       <Card>
         <CardContent className="p-6 space-y-4">
-          <h2 className="text-xl font-bold">Proteínas</h2>
+          <h2 className="text-xl font-bold">ProteÃ­nas</h2>
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Nome</TableHead>
                 <TableHead>Tipo</TableHead>
-                <TableHead>Preço P</TableHead>
-                <TableHead>Preço G</TableHead>
+                <TableHead>PreÃ§o P</TableHead>
+                <TableHead>PreÃ§o G</TableHead>
                 <TableHead>Ativo</TableHead>
-                <TableHead>Ações</TableHead>
+                <TableHead>AÃ§Ãµes</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -143,7 +143,7 @@ export default function AdminMenuPage() {
                   <TableCell>{protein.type}</TableCell>
                   <TableCell>R$ {protein.price_p.toFixed(2)}</TableCell>
                   <TableCell>R$ {protein.price_g.toFixed(2)}</TableCell>
-                  <TableCell>{protein.is_active ? "Sim" : "Não"}</TableCell>
+                  <TableCell>{protein.is_active ? "Sim" : "NÃ£o"}</TableCell>
                   <TableCell className="flex gap-2">
                     <Button
                       size="sm"
@@ -197,14 +197,14 @@ export default function AdminMenuPage() {
               <TableRow>
                 <TableHead>Nome</TableHead>
                 <TableHead>Ativo</TableHead>
-                <TableHead>Ações</TableHead>
+                <TableHead>AÃ§Ãµes</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {bases.map((base) => (
                 <TableRow key={base.id}>
                   <TableCell>{base.name}</TableCell>
-                  <TableCell>{base.is_active ? "Sim" : "Não"}</TableCell>
+                  <TableCell>{base.is_active ? "Sim" : "NÃ£o"}</TableCell>
                   <TableCell className="flex gap-2">
                     <Button
                       size="sm"
@@ -258,14 +258,14 @@ export default function AdminMenuPage() {
               <TableRow>
                 <TableHead>Nome</TableHead>
                 <TableHead>Ativo</TableHead>
-                <TableHead>Ações</TableHead>
+                <TableHead>AÃ§Ãµes</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {salads.map((salad) => (
                 <TableRow key={salad.id}>
                   <TableCell>{salad.name}</TableCell>
-                  <TableCell>{salad.is_active ? "Sim" : "Não"}</TableCell>
+                  <TableCell>{salad.is_active ? "Sim" : "NÃ£o"}</TableCell>
                   <TableCell className="flex gap-2">
                     <Button
                       size="sm"
@@ -307,7 +307,7 @@ export default function AdminMenuPage() {
             <Input
               value={newOptionalPrice}
               onChange={(e) => setNewOptionalPrice(e.target.value)}
-              placeholder="Preço"
+              placeholder="PreÃ§o"
               type="number"
               step="0.01"
             />
@@ -332,9 +332,9 @@ export default function AdminMenuPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Nome</TableHead>
-                <TableHead>Preço</TableHead>
+                <TableHead>PreÃ§o</TableHead>
                 <TableHead>Ativo</TableHead>
-                <TableHead>Ações</TableHead>
+                <TableHead>AÃ§Ãµes</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -342,7 +342,7 @@ export default function AdminMenuPage() {
                 <TableRow key={opt.id}>
                   <TableCell>{opt.name}</TableCell>
                   <TableCell>R$ {opt.price.toFixed(2)}</TableCell>
-                  <TableCell>{opt.is_active ? "Sim" : "Não"}</TableCell>
+                  <TableCell>{opt.is_active ? "Sim" : "NÃ£o"}</TableCell>
                   <TableCell className="flex gap-2">
                     <Button
                       size="sm"
@@ -374,7 +374,7 @@ export default function AdminMenuPage() {
 
       <Card>
         <CardContent className="p-6 space-y-4">
-          <h2 className="text-xl font-bold">Cardápio do dia</h2>
+          <h2 className="text-xl font-bold">CardÃ¡pio do dia</h2>
           <div className="grid gap-4 md:grid-cols-2">
             {DAY_LABELS.map((label, dayIndex) => (
               <div key={label} className="border rounded-lg p-3 space-y-2">
@@ -409,7 +409,7 @@ export default function AdminMenuPage() {
       <Dialog open={!!editingProtein} onOpenChange={() => setEditingProtein(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Editar proteína</DialogTitle>
+            <DialogTitle>Editar proteÃ­na</DialogTitle>
           </DialogHeader>
           {editingProtein && (
             <div className="space-y-3">
@@ -443,7 +443,7 @@ export default function AdminMenuPage() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
-                  <Label>Preço P</Label>
+                  <Label>PreÃ§o P</Label>
                   <Input
                     type="number"
                     step="0.01"
@@ -457,7 +457,7 @@ export default function AdminMenuPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Preço G</Label>
+                  <Label>PreÃ§o G</Label>
                   <Input
                     type="number"
                     step="0.01"
@@ -585,7 +585,7 @@ export default function AdminMenuPage() {
                   })
                 }
               />
-              <Label>Preço</Label>
+              <Label>PreÃ§o</Label>
               <Input
                 type="number"
                 step="0.01"
@@ -622,3 +622,4 @@ export default function AdminMenuPage() {
     </div>
   )
 }
+

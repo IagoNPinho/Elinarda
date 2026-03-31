@@ -6,26 +6,31 @@ import type { Order } from "@/lib/orders"
 const RESTAURANT_WHATSAPP = "558587147033"
 
 interface WhatsAppOrderPayload {
+    fulfillmentType: "pickup" | "delivery"
     customer: {
         name: string
         phone: string
-        street: string
-        number: string
-        neighborhood: string
-        cep: string
+        street?: string
+        number?: string
+        neighborhood?: string
     }
     items: CartItem[]
     subtotal: number
     deliveryFee: number | null
     total: number
+    paymentMethod?: Order["payment_method"] | null
+    paymentDetails?: string | null
 }
 
 export function generateWhatsAppMessage({
+    fulfillmentType,
     customer,
     items,
     subtotal,
     deliveryFee,
     total,
+    paymentMethod,
+    paymentDetails,
 }: WhatsAppOrderPayload) {
     const itemsText = items
         .map((item) => {
@@ -58,21 +63,42 @@ export function generateWhatsAppMessage({
             ? "a consultar"
             : `R$ ${deliveryFee.toFixed(2).replace(".", ",")}`
 
+    const paymentLabel = paymentMethod
+        ? paymentMethod.toUpperCase()
+        : "NAO INFORMADO"
+
+    const paymentDetailsText =
+        paymentDetails && paymentDetails.trim().length > 0
+            ? paymentDetails
+            : "-"
+
+    const title =
+        fulfillmentType === "delivery"
+            ? "NOVO PEDIDO - DELIVERY"
+            : "NOVO PEDIDO - RETIRADA"
+
+    const addressText =
+        fulfillmentType === "delivery"
+            ? `
+*Rua:* ${customer.street ?? "-"}, No ${customer.number ?? "-"}
+*Bairro:* ${customer.neighborhood ?? "-"}
+`
+            : ""
+
     return `
-*NOVO PEDIDO - DELIVERY*
+*${title}*
 
 *Cliente:* ${customer.name}
 *Telefone:* ${customer.phone}
-*Rua:* ${customer.street}, Nº ${customer.number}
-*Bairro:* ${customer.neighborhood}
-*CEP:* ${customer.cep}
-
+${addressText}
 *Itens do Pedido:*
 ${itemsText}
 
 *Subtotal:* R$ ${subtotal.toFixed(2).replace(".", ",")}
-*Taxa de Entrega:* ${deliveryFeeText}
-*Total:* R$ ${total.toFixed(2).replace(".", ",")}
+${fulfillmentType === "delivery" ? `*Taxa de Entrega:* ${deliveryFeeText}
+` : ""}*Total:* R$ ${total.toFixed(2).replace(".", ",")}
+*Pagamento:* ${paymentLabel}
+*Detalhes:* ${paymentDetailsText}
 
 Pedido realizado pelo sistema
 `.trim()
@@ -101,12 +127,12 @@ export function openWhatsAppWithOrderStatus(order: Order) {
     if (!order.customer_phone) return
 
     const message = `
-Olá!  
-Seu pedido *#${order.id.slice(0, 6)}* está com o status:
+Ola!  
+Seu pedido *#${order.id.slice(0, 6)}* esta com o status:
 
 *${statusMessage[order.status]}*
 
-Qualquer dúvida, estamos à disposição.
+Qualquer duvida, estamos a disposicao.
 `.trim()
 
     const encoded = encodeURIComponent(message)

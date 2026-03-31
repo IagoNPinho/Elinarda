@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
@@ -45,13 +45,18 @@ export default function AdminOrderPage() {
     if (!order) {
         return (
             <div className="p-6 text-center">
-                <p>Pedido não encontrado.</p>
+                <p>Pedido nÃ£o encontrado.</p>
                 <Button onClick={() => router.push("/admin")}>
                     Voltar
                 </Button>
             </div>
         )
     }
+
+    const fulfillmentLabel =
+        (order.fulfillment_type ?? (order.origin === "delivery" ? "delivery" : "pickup")) === "delivery"
+            ? "Delivery"
+            : "Retirada"
 
     return (
         <div className="max-w-2xl mx-auto p-4 space-y-6">
@@ -65,7 +70,7 @@ export default function AdminOrderPage() {
                 Voltar
             </Button>
 
-            {/* CABEÇALHO */}
+            {/* CABEÃ‡ALHO */}
             <Card>
                 <CardContent className="p-4 space-y-2">
                     <h2 className="text-lg font-bold">
@@ -75,6 +80,9 @@ export default function AdminOrderPage() {
                     <p className="text-sm text-muted-foreground capitalize">
                         Origem: {order.origin}
                     </p>
+                    <p className="text-sm text-muted-foreground">
+                        Atendimento: {fulfillmentLabel}
+                    </p>
 
                     <p className="text-sm">
                         Status:{" "}
@@ -82,6 +90,17 @@ export default function AdminOrderPage() {
                             {statusLabel[order.status]}
                         </span>
                     </p>
+
+                    {order.payment_method && (
+                        <p className="text-sm">
+                            Pagamento: {order.payment_method}
+                        </p>
+                    )}
+                    {order.payment_details && (
+                        <p className="text-sm">
+                            Detalhes: {order.payment_details}
+                        </p>
+                    )}
 
                     {order.origin === "mesa" && (
                         <p className="text-sm">
@@ -108,9 +127,9 @@ export default function AdminOrderPage() {
                         </p>
 
                         <p className="text-sm">
-                            <strong>Endereço:</strong><br />
+                            <strong>EndereÃ§o:</strong><br />
                             {order.customer_street}, {order.customer_number}<br />
-                            {order.customer_neighborhood} – CEP {order.customer_cep}
+                            {order.customer_neighborhood} â€“ CEP {order.customer_cep}
                         </p>
                     </CardContent>
                 </Card>
@@ -135,10 +154,10 @@ export default function AdminOrderPage() {
             <div>Opcional: {item.optional.join(", ")}</div>
           )}
           {item.proteins && item.proteins.length > 0 && (
-            <div>Proteínas: {item.proteins.map((p) => p.name).join(", ")}</div>
+            <div>ProteÃ­nas: {item.proteins.map((p: any) => p.name).join(", ")}</div>
           )}
           {item.options && item.options.length > 0 && (
-            <div>Opções: {item.options.join(", ")}</div>
+            <div>OpÃ§Ãµes: {item.options.join(", ")}</div>
           )}
         </div>
       )}
@@ -158,3 +177,4 @@ export default function AdminOrderPage() {
         </div>
     )
 }
+

@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
@@ -52,7 +52,23 @@ export default function KitchenOrderPage() {
   async function loadOrder() {
     const data = await fetchOrderById(id as string)
     setOrder(data)
+    if (data?.payment_method) {
+      setPaymentMethod(data.payment_method)
+    } else {
+      setPaymentMethod(null)
+    }
+    if (data?.payment_details) {
+      setPaymentDetails(data.payment_details)
+    } else {
+      setPaymentDetails("")
+    }
     setLoading(false)
+  }
+
+  const getFulfillmentLabel = (order: Order) => {
+    const value =
+      order.fulfillment_type ?? (order.origin === "delivery" ? "delivery" : "pickup")
+    return value === "delivery" ? "Delivery" : "Retirada"
   }
 
   useEffect(() => {
@@ -86,7 +102,7 @@ export default function KitchenOrderPage() {
     method: PaymentMethod | null,
   ): asserts method is PaymentMethod {
     if (!method) {
-      throw new Error("Forma de pagamento obrigatória")
+      throw new Error("Forma de pagamento obrigatÃ³ria")
     }
   }
 
@@ -101,7 +117,7 @@ export default function KitchenOrderPage() {
   if (!order) {
     return (
       <main className="p-6 text-center">
-        <p>Pedido não encontrado.</p>
+        <p>Pedido nÃ£o encontrado.</p>
         <Button onClick={() => router.push("/cozinha")}>
           Voltar
         </Button>
@@ -138,6 +154,9 @@ export default function KitchenOrderPage() {
                 DELIVERY
               </span>
             )}
+            <p className="text-xs opacity-90">
+              {getFulfillmentLabel(order)}
+            </p>
             {order.origin === "delivery" && order.delivery_ordered_at && (
               <p className="text-xs opacity-90">
                 Pedido feito:{" "}
@@ -154,7 +173,7 @@ export default function KitchenOrderPage() {
         </div>
       </header>
 
-      {/* CONTEÚDO */}
+      {/* CONTEÃšDO */}
       <div className="max-w-3xl mx-auto p-4 space-y-6">
         {/* DADOS DO CLIENTE */}
         {order.origin === "delivery" && (
@@ -178,9 +197,9 @@ export default function KitchenOrderPage() {
             </p>
 
             <p className="text-sm">
-              <strong>Endereço:</strong><br />
+              <strong>EndereÃ§o:</strong><br />
               {order.customer_street}, {order.customer_number}<br />
-              {order.customer_neighborhood} – CEP {order.customer_cep}
+              {order.customer_neighborhood} â€“ CEP {order.customer_cep}
             </p>
 
             <Button
@@ -214,7 +233,7 @@ export default function KitchenOrderPage() {
           {item.quantity}x {item.name} ({item.weightInGrams}g)
           <span className="text-muted-foreground">
             {" "}
-            • vendido por peso
+            â€¢ vendido por peso
           </span>
         </>
       ) : (
@@ -230,10 +249,10 @@ export default function KitchenOrderPage() {
             <div>Opcional: {item.optional.join(", ")}</div>
           )}
           {item.proteins && item.proteins.length > 0 && (
-            <div>Proteínas: {item.proteins.map((p) => p.name).join(", ")}</div>
+            <div>ProteÃ­nas: {item.proteins.map((p: any) => p.name).join(", ")}</div>
           )}
           {item.options && item.options.length > 0 && (
-            <div>Opções: {item.options.join(", ")}</div>
+            <div>OpÃ§Ãµes: {item.options.join(", ")}</div>
           )}
         </div>
       )}
@@ -247,7 +266,7 @@ export default function KitchenOrderPage() {
           <span>R$ {order.total.toFixed(2)}</span>
         </div>
 
-        {/* AÇÕES */}
+        {/* AÃ‡Ã•ES */}
         <div className="grid gap-3 sm:grid-cols-3">
           <Button
             size="sm"
@@ -260,7 +279,7 @@ export default function KitchenOrderPage() {
           <ConfirmModal
             open={!!cancelId}
             title="Cancelar pedido"
-            description="Este pedido será cancelado e não entrará no caixa. Essa ação não pode ser desfeita."
+            description="Este pedido serÃ¡ cancelado e nÃ£o entrarÃ¡ no caixa. Essa aÃ§Ã£o nÃ£o pode ser desfeita."
             confirmText="Cancelar pedido"
             loading={loadingCancel}
             onCancel={() => setCancelId(null)}
@@ -304,7 +323,7 @@ export default function KitchenOrderPage() {
                   updateStatus(order, "out_for_delivery")
                 }
               >
-                🚚 Saiu para Entrega
+                ðŸšš Saiu para Entrega
               </Button>
             )}
 
@@ -337,7 +356,7 @@ export default function KitchenOrderPage() {
 
               <input
                 className="w-full border rounded-md p-2 text-sm"
-                placeholder="Observações (ex: troco para 50)"
+                placeholder="ObservaÃ§Ãµes (ex: troco para 50)"
                 value={paymentDetails}
                 onChange={(e) =>
                   setPaymentDetails(e.target.value)
@@ -368,3 +387,4 @@ export default function KitchenOrderPage() {
     </main>
   )
 }
+

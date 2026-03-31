@@ -1,0 +1,4 @@
+- daily_order_number com risco de duplicação
+- lógica no client
+- menu duplicado (hardcoded + banco)
+- delivery_fee duplicado

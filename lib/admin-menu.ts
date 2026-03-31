@@ -150,10 +150,17 @@ export async function updateOptional(
 
 export async function fetchDailyMenu(): Promise<DailyMenuRow[]> {
   const { data, error } = await supabase
-    .from("menu_daily")
-    .select("*")
+    .from("menu_item_daily")
+    .select("id, day_of_week, item_id, is_active")
+    .eq("item_type", "protein")
   if (error) throw error
-  return data ?? []
+
+  return (data ?? []).map((row: any) => ({
+    id: row.id,
+    day_of_week: row.day_of_week,
+    protein_id: row.item_id,
+    is_active: row.is_active,
+  }))
 }
 
 export async function upsertDailyMenu(
@@ -162,26 +169,28 @@ export async function upsertDailyMenu(
   active: boolean,
 ) {
   const { data, error } = await supabase
-    .from("menu_daily")
+    .from("menu_item_daily")
     .select("id")
+    .eq("item_type", "protein")
     .eq("day_of_week", dayOfWeek)
-    .eq("protein_id", proteinId)
+    .eq("item_id", proteinId)
     .maybeSingle()
 
   if (error) throw error
 
   if (data?.id) {
     const { error: updateError } = await supabase
-      .from("menu_daily")
+      .from("menu_item_daily")
       .update({ is_active: active })
       .eq("id", data.id)
     if (updateError) throw updateError
     return
   }
 
-  const { error: insertError } = await supabase.from("menu_daily").insert({
+  const { error: insertError } = await supabase.from("menu_item_daily").insert({
+    item_type: "protein",
+    item_id: proteinId,
     day_of_week: dayOfWeek,
-    protein_id: proteinId,
     is_active: active,
   })
   if (insertError) throw insertError

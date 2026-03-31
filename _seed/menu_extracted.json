@@ -1,0 +1,401 @@
+{
+  "meta": {
+    "source": "lib/menu-data.ts",
+    "extracted_at": "2026-03-21T14:42:14.118Z"
+  },
+  "desserts": [
+    {
+      "key": "pave",
+      "name": "Pavê",
+      "description": "Pavê",
+      "price": 0
+    },
+    {
+      "key": "pudim",
+      "name": "Pudim",
+      "description": "Pudim de leite",
+      "price": 0
+    },
+    {
+      "key": "mousse de morango",
+      "name": "Mousse de morango",
+      "description": "Mousse de morango",
+      "price": 0
+    },
+    {
+      "key": "mousse de maracuja",
+      "name": "Mousse de maracujá",
+      "description": "Mousse de maracujá",
+      "price": 0
+    },
+    {
+      "key": "delicia de abacaxi",
+      "name": "Delícia de abacaxi",
+      "description": "Delícia de abacaxi",
+      "price": 0
+    }
+  ],
+  "glasses": [
+    {
+      "key": "maracuja",
+      "name": "Maracujá",
+      "description": "Suco de maracujá",
+      "price": 6.5
+    },
+    {
+      "key": "caja",
+      "name": "Cajá",
+      "description": "Suco de cajá",
+      "price": 5.5
+    },
+    {
+      "key": "acerola",
+      "name": "Acerola",
+      "description": "Suco de acerola",
+      "price": 5.5
+    },
+    {
+      "key": "goiaba",
+      "name": "Goiaba",
+      "description": "Suco de goiaba",
+      "price": 5.5
+    },
+    {
+      "key": "manga",
+      "name": "Manga",
+      "description": "Suco de manga",
+      "price": 5.5
+    }
+  ],
+  "jars": [
+    {
+      "key": "maracuja",
+      "name": "Maracujá",
+      "description": "Suco de maracujá",
+      "price": 13
+    },
+    {
+      "key": "caja",
+      "name": "Cajá",
+      "description": "Suco de cajá",
+      "price": 11
+    },
+    {
+      "key": "acerola",
+      "name": "Acerola",
+      "description": "Suco de acerola",
+      "price": 11
+    },
+    {
+      "key": "goiaba",
+      "name": "Goiaba",
+      "description": "Suco de goiaba",
+      "price": 11
+    },
+    {
+      "key": "manga",
+      "name": "Manga",
+      "description": "Suco de manga",
+      "price": 11
+    }
+  ],
+  "refrigerantes": [
+    {
+      "key": "pitchulinha",
+      "name": "Pitchulinha",
+      "description": "Guaraná e pepsi",
+      "price": 3
+    },
+    {
+      "key": "pitchulinha coca",
+      "name": "Pitchulinha Coca",
+      "description": "Coca-cola 200ml",
+      "price": 4
+    },
+    {
+      "key": "lata 350ml",
+      "name": "Lata 350ml",
+      "description": "Refrigerantes 300ml",
+      "price": 5
+    },
+    {
+      "key": "coca cola 600ml",
+      "name": "Coca Cola 600ml",
+      "description": "Refrigerante Coca-cola 600ml",
+      "price": 6
+    },
+    {
+      "key": "refrigerante 1l",
+      "name": "Refrigerante 1l",
+      "description": "Refrigerante 1l",
+      "price": 9
+    },
+    {
+      "key": "refrigerante 2l",
+      "name": "Refrigerante 2l",
+      "description": "Refrigarante 2l",
+      "price": 13
+    }
+  ],
+  "portions": [
+    {
+      "key": "creme",
+      "name": "Creme",
+      "description": "Frango, Milho e Creme de leite (acompanha arroz, salada e farofa)",
+      "pricing_mode": "size",
+      "price_p": 15,
+      "price_g": 18,
+      "price_per_kg": null
+    },
+    {
+      "key": "vatapa",
+      "name": "Vatapá",
+      "description": "Frango, azeite de dendê e leite de coco (acompanha arroz, salada e farofa)",
+      "pricing_mode": "size",
+      "price_p": 15,
+      "price_g": 18,
+      "price_per_kg": null
+    },
+    {
+      "key": "galinha escandalosa",
+      "name": "Galinha Escandalosa",
+      "description": "Frango, calabresa, milho, azeitona e molho de tomate (acompanha arroz, salada e farofa)",
+      "pricing_mode": "weight",
+      "price_per_kg": 68,
+      "price_p": null,
+      "price_g": null
+    },
+    {
+      "key": "strogonoff",
+      "name": "Strogonoff",
+      "description": "Carne ao molho de tomate e creme de leite (acompanha arroz, salada e farofa)",
+      "pricing_mode": "weight",
+      "price_per_kg": 68,
+      "price_p": null,
+      "price_g": null
+    }
+  ],
+  "portion_days": [
+    {
+      "key": "creme",
+      "name": "Creme",
+      "days": [
+        0,
+        1,
+        4,
+        5,
+        6
+      ]
+    },
+    {
+      "key": "vatapa",
+      "name": "Vatapá",
+      "days": [
+        0,
+        1,
+        4,
+        5,
+        6
+      ]
+    },
+    {
+      "key": "galinha escandalosa",
+      "name": "Galinha Escandalosa",
+      "days": [
+        0,
+        1,
+        4,
+        5,
+        6
+      ]
+    },
+    {
+      "key": "strogonoff",
+      "name": "Strogonoff",
+      "days": [
+        0,
+        1,
+        4,
+        5,
+        6
+      ]
+    }
+  ],
+  "protein_days": [
+    {
+      "key": "creme de galinha",
+      "name": "Creme de galinha",
+      "days": [
+        0,
+        1,
+        4,
+        5,
+        6
+      ]
+    },
+    {
+      "key": "vatapa",
+      "name": "Vatapá",
+      "days": [
+        0,
+        1,
+        4,
+        5,
+        6
+      ]
+    },
+    {
+      "key": "galinha escandalosa",
+      "name": "Galinha Escandalosa",
+      "days": [
+        0,
+        1,
+        4,
+        5,
+        6
+      ]
+    },
+    {
+      "key": "carne trinchada",
+      "name": "Carne Trinchada",
+      "days": [
+        0,
+        1,
+        4,
+        5,
+        6
+      ]
+    },
+    {
+      "key": "strogonoff de carne",
+      "name": "Strogonoff de Carne",
+      "days": [
+        0,
+        1,
+        4,
+        5,
+        6
+      ]
+    },
+    {
+      "key": "bobo de camarao",
+      "name": "bobo de camarão",
+      "days": [
+        0,
+        6
+      ]
+    },
+    {
+      "key": "fricasse de carne do sol",
+      "name": "Fricassé de carne do sol",
+      "days": [
+        0
+      ]
+    },
+    {
+      "key": "macarronada",
+      "name": "Macarronada",
+      "days": [
+        0,
+        5
+      ]
+    },
+    {
+      "key": "lasanha de carne",
+      "name": "Lasanha de carne",
+      "days": [
+        0,
+        1,
+        4,
+        5,
+        6
+      ]
+    },
+    {
+      "key": "lasanha de frango",
+      "name": "Lasanha de frango",
+      "days": [
+        0,
+        1,
+        4,
+        5,
+        6
+      ]
+    },
+    {
+      "key": "lasanha de mista",
+      "name": "Lasanha de Mista",
+      "days": [
+        0
+      ]
+    },
+    {
+      "key": "lasanha completa",
+      "name": "Lasanha Completa",
+      "days": [
+        0,
+        1,
+        4,
+        5,
+        6
+      ]
+    },
+    {
+      "key": "canja",
+      "name": "Canja",
+      "days": [
+        0,
+        1,
+        4,
+        5,
+        6
+      ]
+    },
+    {
+      "key": "sopa",
+      "name": "Sopa",
+      "days": [
+        0,
+        1,
+        4,
+        5,
+        6
+      ]
+    },
+    {
+      "key": "maria isabel",
+      "name": "Maria Isabel",
+      "days": [
+        1
+      ]
+    },
+    {
+      "key": "baiao de dois c/ asinha de frango",
+      "name": "Baião de dois c/ asinha de frango",
+      "days": [
+        4
+      ]
+    },
+    {
+      "key": "picadinho ao molho madeira",
+      "name": "Picadinho ao molho madeira",
+      "days": [
+        4
+      ]
+    },
+    {
+      "key": "fricasse de frango",
+      "name": "Fricassé de frango",
+      "days": [
+        6
+      ]
+    },
+    {
+      "key": "lasanha mista",
+      "name": "Lasanha Mista",
+      "days": [
+        6
+      ]
+    }
+  ]
+}

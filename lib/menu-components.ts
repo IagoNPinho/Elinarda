@@ -103,8 +103,9 @@ export async function fetchDailyMenuMap(): Promise<Record<number, string[]>> {
 
   dailyInflight = (async () => {
     const { data, error } = await supabase
-      .from("menu_daily")
-      .select("day_of_week, protein_id")
+      .from("menu_item_daily")
+      .select("day_of_week, item_id")
+      .eq("item_type", "protein")
       .eq("is_active", true)
 
     if (error) throw error
@@ -112,7 +113,7 @@ export async function fetchDailyMenuMap(): Promise<Record<number, string[]>> {
     const map: Record<number, string[]> = {}
     ;(data ?? []).forEach((row: any) => {
       if (!map[row.day_of_week]) map[row.day_of_week] = []
-      map[row.day_of_week].push(row.protein_id)
+      map[row.day_of_week].push(row.item_id)
     })
 
     dailyCache = map

@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabase"
-import { getDayProteinNames } from "@/lib/menu-data"
 import type { ProteinType } from "@/lib/menu-components"
 
 export interface MenuProtein {
@@ -17,17 +16,20 @@ export interface MenuProtein {
 export interface MenuBase {
   id: string
   name: string
+  is_active?: boolean
 }
 
 export interface MenuSalad {
   id: string
   name: string
+  is_active?: boolean
 }
 
 export interface MenuOptional {
   id: string
   name: string
   price: number
+  is_active?: boolean
 }
 
 export function useMenuData(dayIndex?: number) {
@@ -40,8 +42,8 @@ export function useMenuData(dayIndex?: number) {
     let mounted = true
 
     const load = async () => {
-      const [proteinsRes, basesRes, saladsRes, optionalsRes] =
-        await Promise.all([
+      const [proteinsRes, basesRes, saladsRes, optionalsRes] = await Promise.all(
+        [
           supabase
             .from("menu_proteins")
             .select("*")
@@ -50,19 +52,29 @@ export function useMenuData(dayIndex?: number) {
           supabase
             .from("menu_bases")
             .select("*")
+            .eq("is_active", true)
             .order("name", { ascending: true }),
           supabase
             .from("menu_salads")
             .select("*")
+            .eq("is_active", true)
             .order("name", { ascending: true }),
           supabase
             .from("menu_optionals")
             .select("*")
+            .eq("is_active", true)
             .order("name", { ascending: true }),
-        ])
+        ],
+      )
 
       if (!mounted) return
-      if (proteinsRes.error || basesRes.error || saladsRes.error || optionalsRes.error) {
+
+      if (
+        proteinsRes.error ||
+        basesRes.error ||
+        saladsRes.error ||
+        optionalsRes.error
+      ) {
         console.error("Erro ao carregar menu:", {
           proteins: proteinsRes.error,
           bases: basesRes.error,
@@ -76,42 +88,32 @@ export function useMenuData(dayIndex?: number) {
         return
       }
 
-      let proteinsData = proteinsRes.data ?? []
+      let proteinsData = (proteinsRes.data ?? []) as any[]
 
       if (typeof dayIndex === "number") {
         const { data: dailyData, error: dailyError } = await supabase
-          .from("menu_daily")
-          .select("protein_id")
+          .from("menu_item_daily")
+          .select("item_id")
+          .eq("item_type", "protein")
           .eq("day_of_week", dayIndex)
           .eq("is_active", true)
 
-        if (!dailyError && dailyData && dailyData.length > 0) {
-          const allowedIds = new Set(dailyData.map((row) => row.protein_id))
+        if (dailyError) {
+          console.error("Erro ao carregar menu_item_daily (protein):", dailyError)
+          proteinsData = []
+        } else if (dailyData && dailyData.length > 0) {
+          const allowedIds = new Set(dailyData.map((row: any) => row.item_id))
           proteinsData = proteinsData.filter((p) => allowedIds.has(p.id))
         } else {
-          const names = getDayProteinNames(dayIndex)
-          if (names.length > 0) {
-            const normalize = (value: string) =>
-              value
-                .normalize("NFD")
-                .replace(/[\u0300-\u036f]/g, "")
-                .toLowerCase()
-                .replace(/\bde\b/g, "")
-                .replace(/\s+/g, " ")
-                .trim()
-
-            const allowedNames = new Set(names.map(normalize))
-            proteinsData = proteinsData.filter((p) =>
-              allowedNames.has(normalize(p.name)),
-            )
-          }
+          // Restaurante fechado nesses dias (ex: ter/qua). Não fazer fallback.
+          proteinsData = []
         }
       }
 
-      setProteins(proteinsData)
-      setBases(basesRes.data ?? [])
-      setSalads(saladsRes.data ?? [])
-      setOptionals(optionalsRes.data ?? [])
+      setProteins(proteinsData as MenuProtein[])
+      setBases((basesRes.data ?? []) as MenuBase[])
+      setSalads((saladsRes.data ?? []) as MenuSalad[])
+      setOptionals((optionalsRes.data ?? []) as MenuOptional[])
     }
 
     load()
@@ -123,3 +125,4 @@ export function useMenuData(dayIndex?: number) {
 
   return { proteins, bases, salads, optionals }
 }
+

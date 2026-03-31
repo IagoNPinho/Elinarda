@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react"
 import { Button } from "@/components/ui/button"
-import { getActiveDayIndex } from "@/lib/menu-data"
 import { useMenuData } from "@/lib/useMenuData"
 import { calculatePratinhoPrice } from "@/lib/pricing"
 
@@ -34,7 +33,7 @@ export function PratinhoBuilder({ onAdd }: PratinhoBuilderProps) {
     price_g: number
   }[]>([])
 
-  const dayIndex = getActiveDayIndex()
+  const dayIndex = new Date().getDay()
   const { proteins, bases, salads, optionals } = useMenuData(dayIndex)
 
   useEffect(() => {
@@ -101,8 +100,8 @@ export function PratinhoBuilder({ onAdd }: PratinhoBuilderProps) {
       base,
       salad: salad || undefined,
       optional,
-      proteins: proteinEntries,
-      configKey,
+        proteins: proteinEntries,
+        configKey,
     })
   }
 

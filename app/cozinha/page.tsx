@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 export const dynamic = "force-dynamic"
 
@@ -18,7 +18,7 @@ import { fetchOpenOrders, updateOrderStatus, cancelOrder } from "@/lib/orders"
 import { ConfirmModal } from "@/components/confirm-cancel-modal"
 
 export default function KitchenPage() {
-  // Router para navegação
+  // Router para navegaÃ§Ã£o
   const router = useRouter()
 
   // Status para modal de cancelamento
@@ -87,7 +87,13 @@ export default function KitchenPage() {
     cancelled: "bg-red-100 text-red-800",
   }
 
-  // 🔎 filtros aplicados
+  const getFulfillmentLabel = (order: Order) => {
+    const value =
+      order.fulfillment_type ?? (order.origin === "delivery" ? "delivery" : "pickup")
+    return value === "delivery" ? "Delivery" : "Retirada"
+  }
+
+  // ðŸ”Ž filtros aplicados
   const filteredOrders = orders.filter((order) => {
     const orderDate = new Date(order.created_at)
 
@@ -148,9 +154,9 @@ export default function KitchenPage() {
                     : originFilter === "mesa"
                       ? "Mesa"
                       : originFilter === "balcao"
-                        ? "Balcão"
+                        ? "BalcÃ£o"
                         : "Delivery"}{" "}
-                  ▼
+                  â–¼
                 </Button>
               </PopoverTrigger>
 
@@ -158,7 +164,7 @@ export default function KitchenPage() {
                 {[
                   { label: "Todos", value: "all" },
                   { label: "Mesa", value: "mesa" },
-                  { label: "Balcão", value: "balcao" },
+                  { label: "BalcÃ£o", value: "balcao" },
                   { label: "Delivery", value: "delivery" },
                 ].map((opt) => (
                   <Button
@@ -181,7 +187,7 @@ export default function KitchenPage() {
                   {statusFilter === "all"
                     ? "Todos"
                     : statusLabel[statusFilter]}{" "}
-                  ▼
+                  â–¼
                 </Button>
               </PopoverTrigger>
 
@@ -256,6 +262,9 @@ export default function KitchenPage() {
                       )}
                     </>
                   )}
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {getFulfillmentLabel(order)}
+                  </p>
                 </div>
 
                 <span className={`text-xs font-semibold px-2 py-1 rounded ${statusColor[order.status]}`}>
@@ -277,10 +286,10 @@ export default function KitchenPage() {
             <div>Opcional: {item.optional.join(", ")}</div>
           )}
           {item.proteins && item.proteins.length > 0 && (
-            <div>Proteínas: {item.proteins.map((p) => p.name).join(", ")}</div>
+            <div>ProteÃ­nas: {item.proteins.map((p: any) => p.name).join(", ")}</div>
           )}
           {item.options && item.options.length > 0 && (
-            <div>Opções: {item.options.join(", ")}</div>
+            <div>OpÃ§Ãµes: {item.options.join(", ")}</div>
           )}
         </div>
       )}
@@ -305,7 +314,7 @@ export default function KitchenPage() {
                   <ConfirmModal
                     open={!!cancelId}
                     title="Cancelar pedido"
-                    description="Este pedido será cancelado e não entrará no caixa. Essa ação não pode ser desfeita."
+                    description="Este pedido serÃ¡ cancelado e nÃ£o entrarÃ¡ no caixa. Essa aÃ§Ã£o nÃ£o pode ser desfeita."
                     confirmText="Cancelar pedido"
                     loading={loadingCancel}
                     onCancel={() => setCancelId(null)}
@@ -341,3 +350,4 @@ export default function KitchenPage() {
     </main>
   )
 }
+
