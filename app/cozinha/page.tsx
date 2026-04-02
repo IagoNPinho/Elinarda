@@ -154,9 +154,8 @@ export default function KitchenPage() {
                     : originFilter === "mesa"
                       ? "Mesa"
                       : originFilter === "balcao"
-                        ? "BalcÃ£o"
+                        ? "Balcão"
                         : "Delivery"}{" "}
-                  â–¼
                 </Button>
               </PopoverTrigger>
 

@@ -8,5 +8,10 @@
       "mcp__claude_ai_Supabase__execute_sql",
       "mcp__claude_ai_Supabase__apply_migration"
     ]
+  },
+  "enabledPlugins": {
+    "security-guidance@claude-plugins-official": true,
+    "autofix-bot@claude-plugins-official": true,
+    "notion@claude-plugins-official": true
   }
 }
