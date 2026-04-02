@@ -102,7 +102,7 @@ export default function KitchenOrderPage() {
     method: PaymentMethod | null,
   ): asserts method is PaymentMethod {
     if (!method) {
-      throw new Error("Forma de pagamento obrigatÃ³ria")
+      throw new Error("Forma de pagamento obrigatória")
     }
   }
 
@@ -117,7 +117,7 @@ export default function KitchenOrderPage() {
   if (!order) {
     return (
       <main className="p-6 text-center">
-        <p>Pedido nÃ£o encontrado.</p>
+        <p>Pedido não encontrado.</p>
         <Button onClick={() => router.push("/cozinha")}>
           Voltar
         </Button>
@@ -173,7 +173,7 @@ export default function KitchenOrderPage() {
         </div>
       </header>
 
-      {/* CONTEÃšDO */}
+      {/* CONTEÚDO */}
       <div className="max-w-3xl mx-auto p-4 space-y-6">
         {/* DADOS DO CLIENTE */}
         {order.origin === "delivery" && (
@@ -197,7 +197,7 @@ export default function KitchenOrderPage() {
             </p>
 
             <p className="text-sm">
-              <strong>EndereÃ§o:</strong><br />
+              <strong>Endereço:</strong><br />
               {order.customer_street}, {order.customer_number}<br />
               {order.customer_neighborhood} â€“ CEP {order.customer_cep}
             </p>
@@ -249,10 +249,10 @@ export default function KitchenOrderPage() {
             <div>Opcional: {item.optional.join(", ")}</div>
           )}
           {item.proteins && item.proteins.length > 0 && (
-            <div>ProteÃ­nas: {item.proteins.map((p: any) => p.name).join(", ")}</div>
+            <div>Proteí­nas: {item.proteins.map((p: any) => p.name).join(", ")}</div>
           )}
           {item.options && item.options.length > 0 && (
-            <div>OpÃ§Ãµes: {item.options.join(", ")}</div>
+            <div>Opções: {item.options.join(", ")}</div>
           )}
         </div>
       )}
@@ -266,7 +266,7 @@ export default function KitchenOrderPage() {
           <span>R$ {order.total.toFixed(2)}</span>
         </div>
 
-        {/* AÃ‡Ã•ES */}
+        {/* AÇÕES */}
         <div className="grid gap-3 sm:grid-cols-3">
           <Button
             size="sm"
@@ -279,7 +279,7 @@ export default function KitchenOrderPage() {
           <ConfirmModal
             open={!!cancelId}
             title="Cancelar pedido"
-            description="Este pedido serÃ¡ cancelado e nÃ£o entrarÃ¡ no caixa. Essa aÃ§Ã£o nÃ£o pode ser desfeita."
+            description="Este pedido será cancelado e não entrará no caixa. Essa ação não pode ser desfeita."
             confirmText="Cancelar pedido"
             loading={loadingCancel}
             onCancel={() => setCancelId(null)}
@@ -356,7 +356,7 @@ export default function KitchenOrderPage() {
 
               <input
                 className="w-full border rounded-md p-2 text-sm"
-                placeholder="ObservaÃ§Ãµes (ex: troco para 50)"
+                placeholder="Observações (ex: troco para 50)"
                 value={paymentDetails}
                 onChange={(e) =>
                   setPaymentDetails(e.target.value)

@@ -18,7 +18,7 @@ import { fetchOpenOrders, updateOrderStatus, cancelOrder } from "@/lib/orders"
 import { ConfirmModal } from "@/components/confirm-cancel-modal"
 
 export default function KitchenPage() {
-  // Router para navegaÃ§Ã£o
+  // Router para navegação
   const router = useRouter()
 
   // Status para modal de cancelamento
@@ -93,7 +93,7 @@ export default function KitchenPage() {
     return value === "delivery" ? "Delivery" : "Retirada"
   }
 
-  // ðŸ”Ž filtros aplicados
+  // filtros aplicados
   const filteredOrders = orders.filter((order) => {
     const orderDate = new Date(order.created_at)
 
@@ -163,7 +163,7 @@ export default function KitchenPage() {
                 {[
                   { label: "Todos", value: "all" },
                   { label: "Mesa", value: "mesa" },
-                  { label: "BalcÃ£o", value: "balcao" },
+                  { label: "Balcão", value: "balcao" },
                   { label: "Delivery", value: "delivery" },
                 ].map((opt) => (
                   <Button
@@ -285,10 +285,10 @@ export default function KitchenPage() {
             <div>Opcional: {item.optional.join(", ")}</div>
           )}
           {item.proteins && item.proteins.length > 0 && (
-            <div>ProteÃ­nas: {item.proteins.map((p: any) => p.name).join(", ")}</div>
+            <div>Proteí­nas: {item.proteins.map((p: any) => p.name).join(", ")}</div>
           )}
           {item.options && item.options.length > 0 && (
-            <div>OpÃ§Ãµes: {item.options.join(", ")}</div>
+            <div>Opções: {item.options.join(", ")}</div>
           )}
         </div>
       )}
@@ -313,7 +313,7 @@ export default function KitchenPage() {
                   <ConfirmModal
                     open={!!cancelId}
                     title="Cancelar pedido"
-                    description="Este pedido serÃ¡ cancelado e nÃ£o entrarÃ¡ no caixa. Essa aÃ§Ã£o nÃ£o pode ser desfeita."
+                    description="Este pedido será cancelado e não entrará no caixa. Essa ação não pode ser desfeita."
                     confirmText="Cancelar pedido"
                     loading={loadingCancel}
                     onCancel={() => setCancelId(null)}

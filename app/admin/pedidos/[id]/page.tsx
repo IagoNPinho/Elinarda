@@ -45,7 +45,7 @@ export default function AdminOrderPage() {
     if (!order) {
         return (
             <div className="p-6 text-center">
-                <p>Pedido nÃ£o encontrado.</p>
+                <p>Pedido não encontrado.</p>
                 <Button onClick={() => router.push("/admin")}>
                     Voltar
                 </Button>
@@ -70,7 +70,7 @@ export default function AdminOrderPage() {
                 Voltar
             </Button>
 
-            {/* CABEÃ‡ALHO */}
+            {/* CABEÇALHO */}
             <Card>
                 <CardContent className="p-4 space-y-2">
                     <h2 className="text-lg font-bold">
@@ -127,7 +127,7 @@ export default function AdminOrderPage() {
                         </p>
 
                         <p className="text-sm">
-                            <strong>EndereÃ§o:</strong><br />
+                            <strong>Endereço:</strong><br />
                             {order.customer_street}, {order.customer_number}<br />
                             {order.customer_neighborhood} â€“ CEP {order.customer_cep}
                         </p>
@@ -154,10 +154,10 @@ export default function AdminOrderPage() {
             <div>Opcional: {item.optional.join(", ")}</div>
           )}
           {item.proteins && item.proteins.length > 0 && (
-            <div>ProteÃ­nas: {item.proteins.map((p: any) => p.name).join(", ")}</div>
+            <div>Proteínas: {item.proteins.map((p: any) => p.name).join(", ")}</div>
           )}
           {item.options && item.options.length > 0 && (
-            <div>OpÃ§Ãµes: {item.options.join(", ")}</div>
+            <div>Opções: {item.options.join(", ")}</div>
           )}
         </div>
       )}
